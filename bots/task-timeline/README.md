@@ -32,6 +32,7 @@ Bot Telegram cho domain Task + Timeline. Spec: [../../docs/task-timeline.md](../
    - `GEMINI_API_KEY` = key Gemini
    - `SPREADSHEET_ID` = (để trống lần đầu; `setup()` tạo workbook rồi ghi lại vào đây)
 6. Chạy `setup()` trong GAS Editor (bật popup ủy quyền OAuth) → tạo workbook + tab + trigger.
+   Chạy thêm `setupRegistry()` → tạo workbook `LP — Registry` (sheet Features + ChangeLog).
 7. **Deploy webhook**: Deploy → New deployment → Web app (execute as me, access anyone). Lưu **deployment ID** + URL vào phần dưới.
 8. Chạy `setWebhook()` để trỏ Telegram về URL `/exec`, và `setupBotCommands()` để đẩy menu lệnh.
 

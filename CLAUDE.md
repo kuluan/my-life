@@ -38,7 +38,7 @@ Domain đầu tiên đang xây: **`bots/task-timeline`** — xem [docs/task-time
 2. Đọc code liên quan, implement trên file **nguồn** (không sửa file build/copy).
 3. **TEST / verify (BẮT BUỘC)** — mục 3. CẤM deploy nếu chưa test xong hoặc còn lỗi.
 4. **Bump version PATCH** nếu ảnh hưởng production — mục 4.
-5. **Ghi release note** (`CHANGELOG.md` của bot tương ứng).
+5. **Cập nhật Registry** (Nhật ký thay đổi + Danh mục tính năng) — **BẮT BUỘC**, mục 5.1.
 6. **Deploy** — mục 5.
 7. **Commit + push** `master`.
 
@@ -87,6 +87,24 @@ cd bots/<domain> && clasp push          # cập nhật code trong project
 **OAuth scopes:** **CẤM khai báo `oauthScopes` tĩnh** trong `appsscript.json` — luôn để auto-detect. Thêm service Google mới (SpreadsheetApp, UrlFetchApp…) → chạy thủ công một hàm test trong GAS Editor để bật popup ủy quyền, tránh webhook lỗi quyền.
 
 ---
+
+## 5.1 Registry — Nhật ký thay đổi & Danh mục tính năng (BẮT BUỘC)
+
+Hệ thống duy trì **2 sheet** cho user xem trên điện thoại (workbook `LP — Registry`):
+- **`Features`** — mọi tính năng đang có (domain, tên, mô tả, lệnh, trạng thái, version).
+- **`ChangeLog`** — mọi yêu cầu thay đổi của user (thời gian, nội dung yêu cầu, domain, AI agent thực hiện, version).
+
+**Nguồn sự thật là 2 mảng `FEATURES` / `CHANGELOG` trong code** (hiện ở `bots/task-timeline/Registry.js`) — git-track, dễ review. `syncRegistry()` đổ xuống sheet; `dailyJob()` tự đồng bộ mỗi ngày.
+
+> [!WARNING]
+> **Mỗi khi thực hiện một yêu cầu thay đổi của user, AI PHẢI (trước khi báo "xong"):**
+> 1. Thêm **1 dòng lên đầu** mảng `CHANGELOG`: `["YYYY-MM-DD HH:mm", "nội dung yêu cầu", "domain", "tên AI agent thực hiện", "vX.Y.Z", "commit (nếu có)"]`.
+> 2. Cập nhật `FEATURES` nếu tính năng được **thêm / đổi / bỏ** (đổi `status` thành `deprecated` khi gỡ, không xoá lịch sử).
+> 3. `clasp push`; chạy `syncRegistry()` (hoặc để `dailyJob` tự đồng bộ) để cập nhật sheet.
+>
+> Không được bỏ qua bước này. Đây là cách user theo dõi hệ thống — coi như một phần của định nghĩa "xong" (mục 3).
+
+Lần đầu (một lần duy nhất): chạy `setupRegistry()` trong GAS Editor để tạo workbook + 2 tab.
 
 ## 6. Bảo mật & bí mật (chặt chẽ)
 

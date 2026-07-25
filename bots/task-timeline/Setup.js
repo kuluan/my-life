@@ -105,6 +105,10 @@ function dailyJob() {
   } else {
     Logger.log("dailyJob: chưa có materializeRecurringForToday(), bỏ qua.");
   }
+  // Đồng bộ lại Registry (Danh mục tính năng + Nhật ký thay đổi) cho user xem.
+  if (typeof syncRegistry === "function") {
+    try { syncRegistry(); } catch (e) { Logger.log("dailyJob syncRegistry lỗi: " + e); }
+  }
 }
 
 /** Hàm test chạy trong GAS Editor — không cần Telegram. */
