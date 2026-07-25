@@ -38,6 +38,9 @@ var DAILY_JOB_HOUR = 5;
 
 var TIMEZONE = "Asia/Ho_Chi_Minh";
 
+// URL /exec của deployment web app duy nhất (khớp DEPLOYMENT_ID trong README).
+var WEBHOOK_EXEC_URL = "https://script.google.com/macros/s/AKfycbwu-BnaS3JeT2r5nXLUKBBYPCZA8DYeSc7n2CaT8MeIUdGu4e7VJNq6HtrsJuCxyAqR/exec";
+
 /** Đọc cấu hình runtime từ Script Properties. */
 function getConfig() {
   var props = PropertiesService.getScriptProperties();

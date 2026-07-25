@@ -109,7 +109,7 @@ function help() {
 
 /** Chạy trong GAS Editor sau khi deploy web app: trỏ webhook Telegram về URL /exec. */
 function setWebhook() {
-  var url = ScriptApp.getService().getUrl();
+  var url = WEBHOOK_EXEC_URL || ScriptApp.getService().getUrl();
   if (!url) { Logger.log("Chưa deploy web app — không có URL."); return; }
   var r = tgCall_("setWebhook", { url: url });
   Logger.log("setWebhook → " + url + " | " + JSON.stringify(r));
