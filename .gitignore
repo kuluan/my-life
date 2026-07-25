@@ -1,0 +1,19 @@
+# clasp — chứa scriptId, không commit
+.clasp.json
+bots/**/.clasp.json
+
+# Apps Script local pull artifacts
+bots/**/appsscript.json.bak
+
+# secrets
+.env
+*.local
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# node (nếu dùng tool phụ)
+node_modules/
