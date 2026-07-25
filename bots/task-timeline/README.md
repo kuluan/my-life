@@ -35,9 +35,13 @@ Bot Telegram cho domain Task + Timeline. Spec: [../../docs/task-timeline.md](../
 7. **Deploy webhook**: Deploy → New deployment → Web app (execute as me, access anyone). Lưu **deployment ID** + URL vào phần dưới.
 8. Chạy `setWebhook()` để trỏ Telegram về URL `/exec`, và `setupBotCommands()` để đẩy menu lệnh.
 
-## Deployment ID (điền sau khi deploy)
+## Deployment ID (duy nhất — không tạo mới)
 ```
-DEPLOYMENT_ID = <điền>
-WEBHOOK_URL   = https://script.google.com/macros/s/<DEPLOYMENT_ID>/exec
+DEPLOYMENT_ID = AKfycbwu-BnaS3JeT2r5nXLUKBBYPCZA8DYeSc7n2CaT8MeIUdGu4e7VJNq6HtrsJuCxyAqR
+WEBHOOK_URL   = https://script.google.com/macros/s/AKfycbwu-BnaS3JeT2r5nXLUKBBYPCZA8DYeSc7n2CaT8MeIUdGu4e7VJNq6HtrsJuCxyAqR/exec
 ```
-> Deploy lại (chạm webhook) phải **đè đúng ID này**, không tạo deployment mới. Xem [../../CLAUDE.md](../../CLAUDE.md) mục 5.
+> Deploy lại khi chạm webhook — **đè đúng ID này**, KHÔNG tạo deployment mới:
+> ```bash
+> clasp push && clasp deploy -i AKfycbwu-BnaS3JeT2r5nXLUKBBYPCZA8DYeSc7n2CaT8MeIUdGu4e7VJNq6HtrsJuCxyAqR -d "vX.Y.Z - mô tả"
+> ```
+> Xem [../../CLAUDE.md](../../CLAUDE.md) mục 5.
