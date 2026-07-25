@@ -5,7 +5,7 @@
  */
 
 // Version — chỉ bump PATCH mỗi lần deploy (CLAUDE.md mục 4).
-var APP_VERSION = "v0.1.0";
+var APP_VERSION = "v0.1.1";
 
 // Tên workbook DB của domain này.
 var WORKBOOK_NAME = "LP — Task & Timeline 2026";
@@ -15,17 +15,22 @@ var SHEET_TASKS = "Tasks";
 var SHEET_TIMELINE = "Timeline";
 var SHEET_RECURRING = "Recurring";
 var SHEET_CONFIG = "Config";
+var SHEET_WHITELIST = "Whitelist";
 
 // Header chuẩn từng tab (thứ tự cột là hợp đồng — không đổi tuỳ tiện).
 var HEADERS = {
   "Tasks": ["id", "created_at", "date", "title", "status", "priority", "category", "note", "started_at", "completed_at", "repeat"],
   "Timeline": ["id", "date", "title", "start_at", "end_at", "duration_min", "category", "task_id", "note"],
   "Recurring": ["id", "title", "schedule", "category", "active", "current_streak", "longest_streak", "last_done_date", "streak_saves", "created_at"],
-  "Config": ["category"]
+  "Config": ["category"],
+  "Whitelist": ["username", "note", "added_at"]
 };
 
 // Category seed lần đầu vào tab Config (user sửa sau tuỳ ý).
 var DEFAULT_CATEGORIES = ["Gia đình", "Công việc", "Dev", "Sức khỏe", "Học tập", "Cá nhân", "Khác"];
+
+// Nick Telegram (không @, không phân biệt hoa/thường) được phép dùng bot — seed lần đầu vào tab Whitelist.
+var DEFAULT_WHITELIST = ["k4luan"];
 
 // Trạng thái task hợp lệ.
 var TASK_STATUS = { TODO: "todo", DOING: "doing", DONE: "done", DROPPED: "dropped" };

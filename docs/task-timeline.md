@@ -5,7 +5,7 @@
 Task (việc có kế hoạch) + Timeline (nhật ký thời gian thực) là **một domain**, một workbook, một bot.
 
 ## Workbook `LP — Task & Timeline 2026`
-Google Sheet riêng, **không đụng** `GEN LEDGER`. 4 tab:
+Google Sheet riêng, **không đụng** `GEN LEDGER`. 5 tab:
 
 ### Tab `Tasks`
 | Cột | Ý nghĩa |
@@ -51,6 +51,15 @@ Google Sheet riêng, **không đụng** `GEN LEDGER`. 4 tab:
 
 ### Tab `Config`
 Danh sách **category cố định** (một cột `category`), feed vào prompt Gemini để phân loại nhất quán. User sửa list bất kỳ lúc nào.
+
+### Tab `Whitelist` (bảo mật)
+| Cột | Ý nghĩa |
+|---|---|
+| `username` | Nick Telegram (không `@`, không phân biệt hoa/thường) được phép dùng bot |
+| `note` | Ghi chú tuỳ ý |
+| `added_at` | Thời điểm thêm |
+
+Bot chặn ngay ở `doPost`: nick không có trong tab này → nhận thông báo "không có quyền", mọi lệnh khác đều bị bỏ qua. Seed mặc định: `k4luan`. User tự thêm/xoá dòng trực tiếp trên Sheet (điện thoại) để cấp/thu quyền — không cần deploy lại.
 
 ## Liên kết Task ↔ Timeline
 - Nút ▶️ dưới task → tạo dòng `Timeline` gắn `task_id`, task chuyển `doing` + `started_at`.

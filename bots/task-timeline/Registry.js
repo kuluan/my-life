@@ -30,11 +30,13 @@ var FEATURES = [
   ["task-timeline", "Liên kết Task ↔ Timeline", "Bắt đầu từ task → mở timeline; kết thúc → tự hoàn thành task", "nút ▶️ dưới task", "live", "v0.1.0"],
   ["task-timeline", "Việc lặp + streak", "Định nghĩa việc lặp, đếm chuỗi, 3 lượt cứu streak", "/repeat ... daily · /streak · dừng lặp X", "live", "v0.1.0"],
   ["task-timeline", "Tự sinh task lặp hằng ngày", "Trigger 5h sáng tạo task cho việc lặp tới hạn", "(tự động)", "live", "v0.1.0"],
-  ["registry", "Danh mục tính năng & Nhật ký thay đổi", "2 sheet cho user xem tính năng hiện có và lịch sử yêu cầu", "(sheet)", "live", "v0.1.0"]
+  ["registry", "Danh mục tính năng & Nhật ký thay đổi", "2 sheet cho user xem tính năng hiện có và lịch sử yêu cầu", "(sheet)", "live", "v0.1.0"],
+  ["task-timeline", "Whitelist bảo mật", "Chỉ nick Telegram có trong tab Whitelist mới dùng được bot; chặn ngay ở webhook doPost", "(tự động, quản lý qua tab Whitelist)", "live", "v0.1.1"]
 ];
 
 // ---------- NGUỒN SỰ THẬT: NHẬT KÝ THAY ĐỔI (mới nhất lên đầu) ----------
 var CHANGELOG = [
+  ["2026-07-25 11:30", "Thêm bảo mật whitelist: bot chỉ trả lời nick Telegram có trong tab Whitelist (workbook Task&Timeline); seed sẵn k4luan; chặn tại doPost", "task-timeline", "Claude Sonnet 5", "v0.1.1", ""],
   ["2026-07-25 11:08", "Tạo file handoff tóm tắt dự án để máy Claude 'dispatch' pull repo là sẵn sàng code tính năng yêu cầu từ điện thoại", "repo", "Claude Opus 4.8", "v0.1.0", ""],
   ["2026-07-25 10:55", "Thêm Registry: sheet Danh mục tính năng + Nhật ký thay đổi + rule bắt buộc AI cập nhật", "registry", "Claude Opus 4.8", "v0.1.0", ""],
   ["2026-07-25 10:45", "Xây bot task-timeline: workbook 4 tab, parser Gemini, Task/Timeline/Recurring + streak, deploy webhook", "task-timeline", "Claude Opus 4.8", "v0.1.0", ""],

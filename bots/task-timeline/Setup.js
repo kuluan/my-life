@@ -36,9 +36,9 @@ function getOrCreateSpreadsheet_() {
   return ss;
 }
 
-/** Đảm bảo đủ 4 tab đúng thứ tự + header + seed + format. */
+/** Đảm bảo đủ 5 tab đúng thứ tự + header + seed + format. */
 function ensureSheets_(ss) {
-  var order = [SHEET_TASKS, SHEET_TIMELINE, SHEET_RECURRING, SHEET_CONFIG];
+  var order = [SHEET_TASKS, SHEET_TIMELINE, SHEET_RECURRING, SHEET_CONFIG, SHEET_WHITELIST];
   order.forEach(function (name, idx) {
     var sh = ss.getSheetByName(name) || ss.insertSheet(name);
     ss.setActiveSheet(sh);
@@ -51,6 +51,7 @@ function ensureSheets_(ss) {
   if (def && order.indexOf("Sheet1") === -1) ss.deleteSheet(def);
 
   seedConfig_(ss);
+  seedWhitelist_(ss);
   annotateTimeline_(ss);
 }
 
@@ -69,6 +70,16 @@ function seedConfig_(ss) {
   if (sh.getLastRow() < 2) {
     var rows = DEFAULT_CATEGORIES.map(function (c) { return [c]; });
     sh.getRange(2, 1, rows.length, 1).setValues(rows);
+  }
+}
+
+/** Seed nick Telegram whitelist mặc định nếu tab Whitelist đang trống. */
+function seedWhitelist_(ss) {
+  var sh = ss.getSheetByName(SHEET_WHITELIST);
+  if (sh.getLastRow() < 2) {
+    var now = fmtDateTime_(new Date());
+    var rows = DEFAULT_WHITELIST.map(function (u) { return [u, "", now]; });
+    sh.getRange(2, 1, rows.length, 3).setValues(rows);
   }
 }
 

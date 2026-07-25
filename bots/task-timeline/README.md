@@ -6,7 +6,7 @@ Bot Telegram cho domain Task + Timeline. Spec: [../../docs/task-timeline.md](../
 | File | Vai trò |
 |---|---|
 | `Config.js` | `APP_VERSION`, `getConfig()` đọc Script Properties |
-| `Setup.js` | `setup()` tạo workbook + 4 tab + header + trigger; `setWebhook()`, `setupBotCommands()` |
+| `Setup.js` | `setup()` tạo workbook + 5 tab (kể cả `Whitelist`) + header + trigger; `setWebhook()`, `setupBotCommands()` |
 | `Telegram.js` | Gửi tin, sửa tin, answerCallback, dựng inline keyboard |
 | `Gemini.js` | `parseMessage()` → JSON intent |
 | `Code.js` | `doPost()` webhook + router; `help()`; `start()` |

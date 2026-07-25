@@ -78,6 +78,18 @@ function normalizeCategory_(cat) {
   return "";
 }
 
+/** Kiểm tra nick Telegram (không phân biệt @ và hoa/thường) có trong tab Whitelist. */
+function isWhitelisted_(username) {
+  if (!username) return false;
+  var uname = String(username).toLowerCase().replace(/^@/, "");
+  var rows = readRows_(SHEET_WHITELIST);
+  for (var i = 0; i < rows.length; i++) {
+    var u = String(rows[i].username || "").toLowerCase().replace(/^@/, "");
+    if (u && u === uname) return true;
+  }
+  return false;
+}
+
 // ---- ngày giờ ----
 function now_() { return new Date(); }
 function todayStr_() { return Utilities.formatDate(new Date(), TIMEZONE, "yyyy-MM-dd"); }

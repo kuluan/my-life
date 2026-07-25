@@ -6,6 +6,16 @@
 function doPost(e) {
   try {
     var data = JSON.parse(e.postData.contents);
+    var from = (data.callback_query && data.callback_query.from) || (data.message && data.message.from);
+    if (!isWhitelisted_(from && from.username)) {
+      Logger.log("doPost: từ chối (không whitelist) — " + JSON.stringify(from));
+      if (data.callback_query) {
+        answerCallbackQuery(data.callback_query.id, "🔒 Bạn không có quyền dùng bot này.");
+      } else if (data.message && data.message.chat) {
+        sendMessage(data.message.chat.id, "🔒 Bot này chỉ phục vụ người dùng được cấp quyền.");
+      }
+      return ContentService.createTextOutput("ok");
+    }
     if (data.callback_query) {
       handleCallback_(data.callback_query);
     } else if (data.message && data.message.text) {
