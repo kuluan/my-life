@@ -35,6 +35,7 @@ var FEATURES = [
 
 // ---------- NGUỒN SỰ THẬT: NHẬT KÝ THAY ĐỔI (mới nhất lên đầu) ----------
 var CHANGELOG = [
+  ["2026-07-25 11:08", "Tạo file handoff tóm tắt dự án để máy Claude 'dispatch' pull repo là sẵn sàng code tính năng yêu cầu từ điện thoại", "repo", "Claude Opus 4.8", "v0.1.0", ""],
   ["2026-07-25 10:55", "Thêm Registry: sheet Danh mục tính năng + Nhật ký thay đổi + rule bắt buộc AI cập nhật", "registry", "Claude Opus 4.8", "v0.1.0", ""],
   ["2026-07-25 10:45", "Xây bot task-timeline: workbook 4 tab, parser Gemini, Task/Timeline/Recurring + streak, deploy webhook", "task-timeline", "Claude Opus 4.8", "v0.1.0", ""],
   ["2026-07-25 10:20", "Khởi tạo repo My-life mới + rule CLAUDE.md chặt chẽ + docs kiến trúc (viết mới song song hệ cũ)", "repo", "Claude Opus 4.8", "-", ""]
