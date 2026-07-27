@@ -7,6 +7,10 @@ function doPost(e) {
   try {
     var data = JSON.parse(e.postData.contents);
     var from = (data.callback_query && data.callback_query.from) || (data.message && data.message.from);
+    var chatId = (data.message && data.message.chat && data.message.chat.id) ||
+      (data.callback_query && data.callback_query.message && data.callback_query.message.chat.id);
+    var inboundText = data.callback_query ? ("[callback] " + (data.callback_query.data || "")) : (data.message && data.message.text);
+    appendLog_(chatId, from && from.username, "in", inboundText);
     if (!isWhitelisted_(from && from.username)) {
       Logger.log("doPost: từ chối (không whitelist) — " + JSON.stringify(from));
       if (data.callback_query) {

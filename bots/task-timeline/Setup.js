@@ -36,9 +36,9 @@ function getOrCreateSpreadsheet_() {
   return ss;
 }
 
-/** Đảm bảo đủ 5 tab đúng thứ tự + header + seed + format. */
+/** Đảm bảo đủ 6 tab đúng thứ tự + header + seed + format. */
 function ensureSheets_(ss) {
-  var order = [SHEET_TASKS, SHEET_TIMELINE, SHEET_RECURRING, SHEET_CONFIG, SHEET_WHITELIST];
+  var order = [SHEET_TASKS, SHEET_TIMELINE, SHEET_RECURRING, SHEET_CONFIG, SHEET_WHITELIST, SHEET_LOGS];
   order.forEach(function (name, idx) {
     var sh = ss.getSheetByName(name) || ss.insertSheet(name);
     ss.setActiveSheet(sh);

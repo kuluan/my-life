@@ -32,11 +32,13 @@ var FEATURES = [
   ["task-timeline", "Tự sinh task lặp hằng ngày", "Trigger 5h sáng tạo task cho việc lặp tới hạn", "(tự động)", "live", "v0.1.0"],
   ["registry", "Danh mục tính năng & Nhật ký thay đổi", "2 sheet cho user xem tính năng hiện có và lịch sử yêu cầu", "(sheet)", "live", "v0.1.0"],
   ["task-timeline", "Whitelist bảo mật", "Chỉ nick Telegram có trong tab Whitelist mới dùng được bot; chặn ngay ở webhook doPost", "(tự động, quản lý qua tab Whitelist)", "live", "v0.1.1"],
-  ["repo", "clasp run (Execution API)", "AI tự chạy hàm cần OAuth (setup/syncRegistry/testGeminiParse/setWebhook...) từ CLI, không cần user bấm Run trong GAS Editor", "(hạ tầng dev, không phải lệnh bot)", "live", "v0.1.2"]
+  ["repo", "clasp run (Execution API)", "AI tự chạy hàm cần OAuth (setup/syncRegistry/testGeminiParse/setWebhook...) từ CLI, không cần user bấm Run trong GAS Editor", "(hạ tầng dev, không phải lệnh bot)", "live", "v0.1.2"],
+  ["task-timeline", "Nhật ký giao tiếp (Logs)", "Ghi lại mọi tin nhắn/callback vào và mọi phản hồi bot gửi ra vào tab Logs để xem lại khi cần", "(tự động, xem tab Logs)", "live", "v0.1.3"]
 ];
 
 // ---------- NGUỒN SỰ THẬT: NHẬT KÝ THAY ĐỔI (mới nhất lên đầu) ----------
 var CHANGELOG = [
+  ["2026-07-27 10:35", "Thêm tab Logs: ghi lại mọi giao tiếp vào/ra với bot (tin nhắn, callback, phản hồi) để xem lại khi cần kiểm tra", "task-timeline", "Claude Sonnet 5", "v0.1.3", ""],
   ["2026-07-27 10:20", "Bật clasp run (Execution API): thêm executionApi + oauthScopes tường minh vào appsscript.json, tạo OAuth client riêng (project GCP 37826454403) — AI tự chạy setup()/syncRegistry()/... không cần user bấm Run trong GAS Editor nữa", "repo", "Claude Sonnet 5", "v0.1.2", ""],
   ["2026-07-25 11:30", "Thêm bảo mật whitelist: bot chỉ trả lời nick Telegram có trong tab Whitelist (workbook Task&Timeline); seed sẵn k4luan; chặn tại doPost", "task-timeline", "Claude Sonnet 5", "v0.1.1", ""],
   ["2026-07-25 11:08", "Tạo file handoff tóm tắt dự án để máy Claude 'dispatch' pull repo là sẵn sàng code tính năng yêu cầu từ điện thoại", "repo", "Claude Opus 4.8", "v0.1.0", ""],

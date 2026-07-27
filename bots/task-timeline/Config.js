@@ -5,7 +5,7 @@
  */
 
 // Version — chỉ bump PATCH mỗi lần deploy (CLAUDE.md mục 4).
-var APP_VERSION = "v0.1.2";
+var APP_VERSION = "v0.1.3";
 
 // Tên workbook DB của domain này.
 var WORKBOOK_NAME = "LP — Task & Timeline 2026";
@@ -16,6 +16,7 @@ var SHEET_TIMELINE = "Timeline";
 var SHEET_RECURRING = "Recurring";
 var SHEET_CONFIG = "Config";
 var SHEET_WHITELIST = "Whitelist";
+var SHEET_LOGS = "Logs";
 
 // Header chuẩn từng tab (thứ tự cột là hợp đồng — không đổi tuỳ tiện).
 var HEADERS = {
@@ -23,7 +24,8 @@ var HEADERS = {
   "Timeline": ["id", "date", "title", "start_at", "end_at", "duration_min", "category", "task_id", "note"],
   "Recurring": ["id", "title", "schedule", "category", "active", "current_streak", "longest_streak", "last_done_date", "streak_saves", "created_at"],
   "Config": ["category"],
-  "Whitelist": ["username", "note", "added_at"]
+  "Whitelist": ["username", "note", "added_at"],
+  "Logs": ["timestamp", "chat_id", "username", "direction", "text"]
 };
 
 // Category seed lần đầu vào tab Config (user sửa sau tuỳ ý).

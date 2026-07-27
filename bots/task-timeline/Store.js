@@ -78,6 +78,21 @@ function normalizeCategory_(cat) {
   return "";
 }
 
+/** Ghi 1 dòng giao tiếp vào tab Logs. Không bao giờ để lỗi ghi log làm gãy luồng chính. */
+function appendLog_(chatId, username, direction, text) {
+  try {
+    appendRow_(SHEET_LOGS, {
+      timestamp: fmtDateTime_(new Date()),
+      chat_id: chatId || "",
+      username: username || "",
+      direction: direction,
+      text: text
+    });
+  } catch (e) {
+    Logger.log("appendLog_ lỗi: " + e);
+  }
+}
+
 /** Kiểm tra nick Telegram (không phân biệt @ và hoa/thường) có trong tab Whitelist. */
 function isWhitelisted_(username) {
   if (!username) return false;

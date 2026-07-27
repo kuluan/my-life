@@ -25,6 +25,7 @@ function tgCall_(method, payload) {
 
 /** Gửi tin (HTML). keyboard: mảng 2 chiều các nút inline (hoặc null). */
 function sendMessage(chatId, text, keyboard) {
+  appendLog_(chatId, "", "out", text);
   var payload = {
     chat_id: chatId,
     text: text,
@@ -43,6 +44,7 @@ function sendMessageGetId(chatId, text, keyboard) {
 
 /** Sửa nội dung + keyboard của một tin đã gửi. */
 function editMessageText(chatId, messageId, text, keyboard) {
+  appendLog_(chatId, "", "out", text);
   var payload = {
     chat_id: chatId,
     message_id: messageId,

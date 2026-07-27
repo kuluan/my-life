@@ -5,7 +5,7 @@
 Task (việc có kế hoạch) + Timeline (nhật ký thời gian thực) là **một domain**, một workbook, một bot.
 
 ## Workbook `LP — Task & Timeline 2026`
-Google Sheet riêng, **không đụng** `GEN LEDGER`. 5 tab:
+Google Sheet riêng, **không đụng** `GEN LEDGER`. 6 tab:
 
 ### Tab `Tasks`
 | Cột | Ý nghĩa |
@@ -60,6 +60,17 @@ Danh sách **category cố định** (một cột `category`), feed vào prompt 
 | `added_at` | Thời điểm thêm |
 
 Bot chặn ngay ở `doPost`: nick không có trong tab này → nhận thông báo "không có quyền", mọi lệnh khác đều bị bỏ qua. Seed mặc định: `k4luan`. User tự thêm/xoá dòng trực tiếp trên Sheet (điện thoại) để cấp/thu quyền — không cần deploy lại.
+
+### Tab `Logs` (nhật ký giao tiếp)
+| Cột | Ý nghĩa |
+|---|---|
+| `timestamp` | Thời điểm ghi log |
+| `chat_id` | Chat Telegram liên quan |
+| `username` | Nick người gửi (trống nếu dòng `out`) |
+| `direction` | `in` (tin nhắn/callback từ user, kể cả bị chặn whitelist) hoặc `out` (bot trả lời) |
+| `text` | Nội dung |
+
+Ghi tự động ở `doPost` (mọi tin nhắn/callback vào) và `sendMessage`/`editMessageText` (mọi phản hồi bot gửi ra) — để user xem lại lịch sử giao tiếp trên Sheet khi cần kiểm tra. Lỗi ghi log không làm gãy luồng chính (bọc try/catch).
 
 ## Liên kết Task ↔ Timeline
 - Nút ▶️ dưới task → tạo dòng `Timeline` gắn `task_id`, task chuyển `doing` + `started_at`.
