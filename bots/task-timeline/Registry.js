@@ -41,6 +41,7 @@ var FEATURES = [
 
 // ---------- NGUỒN SỰ THẬT: NHẬT KÝ THAY ĐỔI (mới nhất lên đầu) ----------
 var CHANGELOG = [
+  ["2026-07-27 17:17", "Fix nghiêm trọng: /timeline và /tasks luôn báo trống, thời lượng ra NaN — do Sheets tự ép chuỗi ngày/giờ thành kiểu Date. Chuẩn hoá khi đọc + đặt cột dạng text + dọn dữ liệu cũ (migrateDateTimeToText)", "task-timeline", "Claude Opus 5", "v0.1.8", ""],
   ["2026-07-27 11:32", "Fix: '/tl <việc> từ 10:00' bị ghi nhầm giờ hiện tại — timelineStart giờ nhận cả start_time, timelineStop nhận cả end_time; prompt phân biệt rõ 'từ H1' (bắt đầu) với 'từ H1 đến H2' (khoảng trọn)", "task-timeline", "Claude Opus 5", "v0.1.7", ""],
   ["2026-07-27 11:18", "Thêm mục tiêu hằng ngày bằng câu tự nhiên ('mục tiêu học Duolingo mỗi ngày') và khai báo được chuỗi sẵn có ('hôm nay là ngày 928'); thêm lệnh sửa chuỗi 'đặt chuỗi X là N'", "task-timeline", "Claude Opus 5", "v0.1.6", ""],
   ["2026-07-27 11:06", "Fix bot tắc không trả lời: doPost trả ContentService khiến Apps Script đáp 302, Telegram không xác nhận đã giao nên retry mãi 1 update và chặn mọi tin sau. Bỏ giá trị trả về → đáp 200. Kèm tối ưu tốc độ: gộp ghi Logs 1 lần + cache whitelist 5 phút", "task-timeline", "Claude Opus 5", "v0.1.5", ""],

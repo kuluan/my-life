@@ -20,6 +20,21 @@ function isDuplicateUpdate_(updateId) {
   return false;
 }
 
+// Cột lưu ngày/giờ dạng chuỗi. Google Sheets tự ép "2026-07-27" và "10:00" thành kiểu Date,
+// nên phải chuẩn hoá lại khi đọc (nếu không, so sánh chuỗi sẽ trượt và tính phút ra NaN).
+var DATE_ONLY_COLS = ["date", "last_done_date"];
+var TIME_ONLY_COLS = ["start_at", "end_at"];
+var TEXT_FORMAT_COLS = ["date", "last_done_date", "start_at", "end_at",
+  "created_at", "completed_at", "started_at", "timestamp", "added_at"];
+
+/** Đưa ô bị Sheets ép kiểu Date về đúng chuỗi theo tên cột. */
+function normCell_(header, v) {
+  if (!(v instanceof Date)) return v;
+  if (DATE_ONLY_COLS.indexOf(header) >= 0) return Utilities.formatDate(v, TIMEZONE, "yyyy-MM-dd");
+  if (TIME_ONLY_COLS.indexOf(header) >= 0) return Utilities.formatDate(v, TIMEZONE, "HH:mm");
+  return Utilities.formatDate(v, TIMEZONE, "yyyy-MM-dd HH:mm");
+}
+
 /** Đọc toàn bộ data rows thành mảng object theo header; kèm _row (số hàng sheet, 1-based). */
 function readRows_(name) {
   var sh = sheet_(name);
@@ -31,7 +46,7 @@ function readRows_(name) {
     var row = values[r];
     if (row.join("") === "") continue; // bỏ hàng trống hoàn toàn
     var obj = { _row: r + 1 };
-    for (var c = 0; c < headers.length; c++) obj[headers[c]] = row[c];
+    for (var c = 0; c < headers.length; c++) obj[headers[c]] = normCell_(headers[c], row[c]);
     out.push(obj);
   }
   return out;
@@ -100,6 +115,66 @@ function testDedup() {
   var result = "first=" + first + " second=" + second;
   Logger.log(result);
   return result;
+}
+
+/** Đặt định dạng "text thuần" cho các cột ngày/giờ để Sheets không ép thành Date. */
+function ensureTextFormat_(sh, headers) {
+  var rows = Math.max(sh.getMaxRows() - 1, 1);
+  headers.forEach(function (h, i) {
+    if (TEXT_FORMAT_COLS.indexOf(h) >= 0) sh.getRange(2, i + 1, rows, 1).setNumberFormat("@");
+  });
+}
+
+/**
+ * Dọn dữ liệu cũ: ô ngày/giờ đã bị ép kiểu Date → ghi lại thành chuỗi text chuẩn,
+ * và tính lại duration_min bị hỏng (#NUM!/NaN). Idempotent, chạy lại vô hại.
+ */
+function migrateDateTimeToText() {
+  var report = [];
+  [SHEET_TASKS, SHEET_TIMELINE, SHEET_RECURRING, SHEET_WHITELIST, SHEET_LOGS].forEach(function (name) {
+    var sh = sheet_(name);
+    var headers = HEADERS[name];
+    ensureTextFormat_(sh, headers);
+    var last = sh.getLastRow();
+    if (last < 2) { report.push(name + ":0"); return; }
+    var range = sh.getRange(2, 1, last - 1, headers.length);
+    var values = range.getValues();
+    var fixed = 0;
+    for (var r = 0; r < values.length; r++) {
+      for (var c = 0; c < headers.length; c++) {
+        if (values[r][c] instanceof Date) { values[r][c] = normCell_(headers[c], values[r][c]); fixed++; }
+      }
+      // Tính lại duration_min nếu hỏng mà đã có đủ giờ bắt đầu/kết thúc.
+      if (name === SHEET_TIMELINE) {
+        var iS = headers.indexOf("start_at"), iE = headers.indexOf("end_at"), iD = headers.indexOf("duration_min");
+        var s = normTime_(values[r][iS]), e = normTime_(values[r][iE]);
+        if (s && e && !(Number(values[r][iD]) > 0)) { values[r][iD] = diffMinutes_(s, e); fixed++; }
+      }
+    }
+    range.setValues(values);
+    report.push(name + ":" + fixed);
+  });
+  Logger.log("migrateDateTimeToText → " + report.join(", "));
+  return report.join(", ");
+}
+
+/** Debug: đếm bản ghi hôm nay đúng theo bộ lọc mà /timeline và /tasks dùng. */
+function debugTodayCounts() {
+  var today = todayStr_();
+  var tl = readRows_(SHEET_TIMELINE).filter(function (b) { return String(b.date) === today; });
+  var tk = readRows_(SHEET_TASKS).filter(function (t) { return String(t.date) === today; });
+  return JSON.stringify({
+    today: today, timeline: tl.length, tasks: tk.length,
+    timeline_sample: tl.length ? (tl[0].start_at + "-" + tl[0].end_at + " " + tl[0].duration_min + "p") : null
+  });
+}
+
+/** Debug: dump dữ liệu thô 1 tab kèm kiểu. `clasp run debugRawRows -p '["Timeline"]'` */
+function debugRawRows(name) {
+  var values = sheet_(name).getDataRange().getValues();
+  return JSON.stringify(values.slice(0, 4).map(function (row) {
+    return row.map(function (v) { return (v instanceof Date ? "DATE:" : typeof v + ":") + v; });
+  }));
 }
 
 /** Công cụ debug: đọc N dòng cuối tab Logs, gọi qua `clasp run debugReadLogs -p '[20]'`. */

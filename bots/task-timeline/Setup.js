@@ -44,6 +44,7 @@ function ensureSheets_(ss) {
     ss.setActiveSheet(sh);
     ss.moveActiveSheet(idx + 1);
     ensureHeader_(sh, HEADERS[name]);
+    ensureTextFormat_(sh, HEADERS[name]); // chặn Sheets ép chuỗi ngày/giờ thành Date
   });
 
   // Xoá tab mặc định "Sheet1" nếu Apps Script tạo kèm.
