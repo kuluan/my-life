@@ -3,8 +3,22 @@
  * Mọi handler dùng chung. Header cột lấy từ HEADERS (Config.js).
  */
 
-function ss_() { return SpreadsheetApp.openById(getConfig().spreadsheetId); }
+var _ssCache_ = null;
+/** Mở Spreadsheet, cache trong 1 lần thực thi để tránh mở lại nhiều lần/request (giảm độ trễ). */
+function ss_() {
+  if (!_ssCache_) _ssCache_ = SpreadsheetApp.openById(getConfig().spreadsheetId);
+  return _ssCache_;
+}
 function sheet_(name) { return ss_().getSheetByName(name); }
+
+/** Chống xử lý trùng khi Telegram gửi lại (retry) cùng 1 update_id. Nhớ trong 10 phút. */
+function isDuplicateUpdate_(updateId) {
+  var cache = CacheService.getScriptCache();
+  var key = "upd_" + updateId;
+  if (cache.get(key)) return true;
+  cache.put(key, "1", 600);
+  return false;
+}
 
 /** Đọc toàn bộ data rows thành mảng object theo header; kèm _row (số hàng sheet, 1-based). */
 function readRows_(name) {
@@ -76,6 +90,22 @@ function normalizeCategory_(cat) {
   var cats = getCategories_();
   for (var i = 0; i < cats.length; i++) if (cats[i].toLowerCase() === String(cat).toLowerCase()) return cats[i];
   return "";
+}
+
+/** Test dedup update_id — gọi qua `clasp run testDedup`. Kỳ vọng: first=false, second=true. */
+function testDedup() {
+  var id = "test-" + new Date().getTime();
+  var first = isDuplicateUpdate_(id);
+  var second = isDuplicateUpdate_(id);
+  var result = "first=" + first + " second=" + second;
+  Logger.log(result);
+  return result;
+}
+
+/** Công cụ debug: đọc N dòng cuối tab Logs, gọi qua `clasp run debugReadLogs -p '[20]'`. */
+function debugReadLogs(limit) {
+  var rows = readRows_(SHEET_LOGS);
+  return JSON.stringify(rows.slice(-(limit || 20)));
 }
 
 /** Ghi 1 dòng giao tiếp vào tab Logs. Không bao giờ để lỗi ghi log làm gãy luồng chính. */

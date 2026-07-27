@@ -6,6 +6,10 @@
 function doPost(e) {
   try {
     var data = JSON.parse(e.postData.contents);
+    if (data.update_id !== undefined && isDuplicateUpdate_(data.update_id)) {
+      Logger.log("doPost: bỏ qua update_id trùng (Telegram gửi lại) — " + data.update_id);
+      return ContentService.createTextOutput("ok");
+    }
     var from = (data.callback_query && data.callback_query.from) || (data.message && data.message.from);
     var chatId = (data.message && data.message.chat && data.message.chat.id) ||
       (data.callback_query && data.callback_query.message && data.callback_query.message.chat.id);
