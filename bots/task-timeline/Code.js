@@ -33,6 +33,7 @@ function doPost(e) {
       }
       return;
     }
+    rememberChatId_(chatId); // để trigger nhắc nhở biết gửi về đâu
     if (data.callback_query) {
       handleCallback_(data.callback_query);
     } else if (data.message && data.message.text) {
@@ -102,6 +103,8 @@ function handleCallback_(cq) {
     case "ls": timelineStopById(chatId, id, "", cbId); break;    // timeline ⏹️ kết thúc
     case "lx": askDeleteTimeline(chatId, id, cbId); break;      // timeline 🗑 hỏi
     case "lxok": deleteTimelineConfirmed(chatId, id, cbId); break; // timeline xoá xác nhận
+    case "keep": answerCallbackQuery(cbId, "👍 Ok, tiếp tục nhé"); break;  // nhắc nhở: vẫn đang làm
+    case "tlview": answerCallbackQuery(cbId, ""); timelineList(chatId, todayStr_()); break;
     case "cancel": answerCallbackQuery(cbId, "Đã huỷ"); break;
     default: answerCallbackQuery(cbId, "");
   }
@@ -137,6 +140,10 @@ function help() {
     "• Sửa chuỗi: <code>đặt chuỗi Duolingo là 928</code>\n" +
     "• Xem streak: /streak\n" +
     "• Dừng: <code>dừng lặp tập gym</code>\n\n" +
+    "⏰ <b>NHẮC NHỞ TỰ ĐỘNG</b>\n" +
+    "• Mỗi 60 phút, từ " + REMINDER_START_HOUR + "h đến " + REMINDER_END_HOUR + "h\n" +
+    "• Đang có hoạt động → nhắc cập nhật (nút ⏹️ Kết thúc · 👍 Vẫn đang làm)\n" +
+    "• Không có → nhắc ghi nhanh đang làm gì\n\n" +
     "▶️ Bấm <b>Bắt đầu</b> dưới task để mở timeline; kết thúc sẽ tự hoàn thành task.";
 }
 

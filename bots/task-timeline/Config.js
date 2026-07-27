@@ -5,7 +5,7 @@
  */
 
 // Version — chỉ bump PATCH mỗi lần deploy (CLAUDE.md mục 4).
-var APP_VERSION = "v0.1.8";
+var APP_VERSION = "v0.1.9";
 
 // Tên workbook DB của domain này.
 var WORKBOOK_NAME = "LP — Task & Timeline 2026";
@@ -42,6 +42,10 @@ var MAX_STREAK_SAVES = 3;
 
 // Giờ chạy trigger sinh task lặp hằng ngày (giờ VN).
 var DAILY_JOB_HOUR = 5;
+
+// Khung giờ nhắc nhở timeline mỗi 60 phút (giờ VN, bao gồm cả 2 đầu).
+var REMINDER_START_HOUR = 6;
+var REMINDER_END_HOUR = 21;
 
 var TIMEZONE = "Asia/Ho_Chi_Minh";
 

@@ -13,6 +13,7 @@ function setup() {
   var ss = getOrCreateSpreadsheet_();
   ensureSheets_(ss);
   ensureDailyTrigger_();
+  ensureHourlyReminderTrigger_();
   var url = ss.getUrl();
   Logger.log("Setup xong. SPREADSHEET_ID = " + ss.getId());
   Logger.log("Workbook URL: " + url);
