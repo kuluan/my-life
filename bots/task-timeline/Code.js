@@ -3,12 +3,21 @@
  * Đồng bộ 4 vị trí lệnh: help() · setupBotCommands() · start() · router (CLAUDE.md mục 5).
  */
 
+/**
+ * doPost — điểm vào webhook Telegram.
+ *
+ * ⚠️ TUYỆT ĐỐI KHÔNG `return ContentService.createTextOutput(...)` ở đây.
+ * Trả về nội dung khiến Apps Script đáp 302 redirect sang script.googleusercontent.com;
+ * Telegram coi 302 là phản hồi sai, không bao giờ xác nhận đã giao, retry mãi một update
+ * và CHẶN toàn bộ tin phía sau (bot trả lời 1 tin rồi tắc). Trả về rỗng → Apps Script
+ * đáp thẳng 200, Telegram chấp nhận. (Đã trả giá bằng sự cố ngày 2026-07-27.)
+ */
 function doPost(e) {
   try {
     var data = JSON.parse(e.postData.contents);
     if (data.update_id !== undefined && isDuplicateUpdate_(data.update_id)) {
       Logger.log("doPost: bỏ qua update_id trùng (Telegram gửi lại) — " + data.update_id);
-      return ContentService.createTextOutput("ok");
+      return;
     }
     var from = (data.callback_query && data.callback_query.from) || (data.message && data.message.from);
     var chatId = (data.message && data.message.chat && data.message.chat.id) ||
@@ -22,7 +31,7 @@ function doPost(e) {
       } else if (data.message && data.message.chat) {
         sendMessage(data.message.chat.id, "🔒 Bot này chỉ phục vụ người dùng được cấp quyền.");
       }
-      return ContentService.createTextOutput("ok");
+      return;
     }
     if (data.callback_query) {
       handleCallback_(data.callback_query);
@@ -31,8 +40,10 @@ function doPost(e) {
     }
   } catch (err) {
     Logger.log("doPost error: " + err + " | " + (e && e.postData ? e.postData.contents : ""));
+  } finally {
+    flushLogs_(); // ghi log 1 lần ở cuối, kể cả khi có lỗi
   }
-  return ContentService.createTextOutput("ok");
+  return;
 }
 
 function routeMessage_(message) {
@@ -138,6 +149,24 @@ function deleteWebhook() {
   var r = tgCall_("deleteWebhook", {});
   Logger.log("deleteWebhook | " + JSON.stringify(r));
   return r;
+}
+
+/** Debug: xem trạng thái webhook (pending_update_count, lỗi gần nhất...). Gọi qua `clasp run debugWebhookInfo`. */
+function debugWebhookInfo() {
+  var r = tgCall_("getWebhookInfo", {});
+  return JSON.stringify(r);
+}
+
+/**
+ * Gắn lại webhook và XẢ hàng đợi update đang kẹt (drop_pending_updates).
+ * Dùng khi Telegram retry mãi một update cũ khiến tin mới không tới được bot.
+ */
+function resetWebhookDropPending() {
+  var url = WEBHOOK_EXEC_URL || ScriptApp.getService().getUrl();
+  if (!url) { return "Chưa deploy web app — không có URL."; }
+  var r = tgCall_("setWebhook", { url: url, drop_pending_updates: true });
+  Logger.log("resetWebhookDropPending → " + url + " | " + JSON.stringify(r));
+  return JSON.stringify(r);
 }
 
 /** Đẩy danh sách slash command lên menu Telegram. */

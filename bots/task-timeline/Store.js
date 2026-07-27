@@ -108,31 +108,55 @@ function debugReadLogs(limit) {
   return JSON.stringify(rows.slice(-(limit || 20)));
 }
 
-/** Ghi 1 dòng giao tiếp vào tab Logs. Không bao giờ để lỗi ghi log làm gãy luồng chính. */
+var _logBuffer_ = [];
+
+/**
+ * Đưa 1 dòng giao tiếp vào bộ đệm. KHÔNG ghi Sheet ngay — flushLogs_() ghi tất cả
+ * bằng một thao tác duy nhất ở cuối request, để webhook phản hồi Telegram nhanh nhất.
+ */
 function appendLog_(chatId, username, direction, text) {
+  _logBuffer_.push([fmtDateTime_(new Date()), chatId || "", username || "", direction, text]);
+}
+
+/** Ghi toàn bộ log đang đệm xuống tab Logs (1 thao tác). Lỗi log không làm gãy luồng chính. */
+function flushLogs_() {
+  if (!_logBuffer_.length) return;
+  var rows = _logBuffer_;
+  _logBuffer_ = [];
   try {
-    appendRow_(SHEET_LOGS, {
-      timestamp: fmtDateTime_(new Date()),
-      chat_id: chatId || "",
-      username: username || "",
-      direction: direction,
-      text: text
-    });
+    var sh = sheet_(SHEET_LOGS);
+    sh.getRange(sh.getLastRow() + 1, 1, rows.length, HEADERS[SHEET_LOGS].length).setValues(rows);
   } catch (e) {
-    Logger.log("appendLog_ lỗi: " + e);
+    Logger.log("flushLogs_ lỗi: " + e);
   }
 }
 
-/** Kiểm tra nick Telegram (không phân biệt @ và hoa/thường) có trong tab Whitelist. */
+/**
+ * Kiểm tra nick Telegram (không phân biệt @ và hoa/thường) có trong tab Whitelist.
+ * Danh sách được cache 5 phút để webhook không phải đọc Sheet mỗi request —
+ * sửa tab Whitelist có hiệu lực chậm nhất sau 5 phút (hoặc gọi clearWhitelistCache()).
+ */
 function isWhitelisted_(username) {
   if (!username) return false;
   var uname = String(username).toLowerCase().replace(/^@/, "");
-  var rows = readRows_(SHEET_WHITELIST);
-  for (var i = 0; i < rows.length; i++) {
-    var u = String(rows[i].username || "").toLowerCase().replace(/^@/, "");
-    if (u && u === uname) return true;
-  }
-  return false;
+  return getWhitelist_().indexOf(uname) >= 0;
+}
+
+function getWhitelist_() {
+  var cache = CacheService.getScriptCache();
+  var cached = cache.get("whitelist");
+  if (cached) return JSON.parse(cached);
+  var list = readRows_(SHEET_WHITELIST).map(function (r) {
+    return String(r.username || "").toLowerCase().replace(/^@/, "");
+  }).filter(String);
+  cache.put("whitelist", JSON.stringify(list), 300);
+  return list;
+}
+
+/** Xoá cache whitelist để áp dụng ngay thay đổi trên tab Whitelist. */
+function clearWhitelistCache() {
+  CacheService.getScriptCache().remove("whitelist");
+  return "Đã xoá cache whitelist.";
 }
 
 // ---- ngày giờ ----

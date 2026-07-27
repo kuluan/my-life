@@ -82,9 +82,20 @@ cd bots/<domain> && clasp push          # cập nhật code trong project
 > [!WARNING]
 > **Webhook Telegram gọi bản đã `clasp deploy`, KHÔNG phải bản `clasp push`.** Sửa code chạm luồng `doPost`/webhook → **phải `clasp deploy` đè đúng deployment ID duy nhất** của bot (ghi trong `bots/<domain>/README.md`). **CẤM tạo deployment mới làm đổi URL webhook.**
 
+> [!WARNING]
+> **`doPost` KHÔNG được trả về `ContentService`/`HtmlService`.** Trả nội dung → Apps Script đáp **302 redirect**; Telegram coi 302 là phản hồi sai, **không xác nhận đã giao**, retry mãi một update và **chặn mọi tin phía sau** (bot trả lời 1 tin rồi tắc, kèm spam lặp). Kết thúc `doPost` bằng `return;` rỗng → Apps Script đáp thẳng **200**. Bot cũ `KuAllin-Bot` làm đúng cách này. Kiểm chứng nhanh:
+> ```bash
+> curl -s -o /dev/null -w "%{http_code} %{num_redirects}\n" -H "Content-Type: application/json" -d '{"update_id":1}' "<URL /exec>"   # phải ra: 200 0
+> ```
+
 **Thêm/sửa lệnh bot → đồng bộ 4 vị trí:** `help()` · `setupBotCommands()` · `start()` · router trong `doPost`. Sau khi deploy có lệnh mới → gọi URL action đẩy slash command lên Telegram (ghi trong README của bot).
 
-**OAuth scopes:** **CẤM khai báo `oauthScopes` tĩnh** trong `appsscript.json` — luôn để auto-detect. Thêm service Google mới (SpreadsheetApp, UrlFetchApp…) → chạy thủ công một hàm test trong GAS Editor để bật popup ủy quyền, tránh webhook lỗi quyền.
+**Chẩn đoán webhook:** `clasp run debugWebhookInfo` xem `pending_update_count` (>0 kéo dài = đang kẹt) và `last_error_message`. Kẹt do update cũ → `clasp run resetWebhookDropPending`.
+
+**OAuth scopes:** Mặc định để **auto-detect**. Ngoại lệ đã duyệt (2026-07-27): `bots/task-timeline` khai báo `oauthScopes` tĩnh vì `clasp run` (Execution API) bắt buộc phải có, đổi lại AI tự chạy được `setup()`/`syncRegistry()`… không cần user bấm Run.
+
+> [!WARNING]
+> Hệ quả của scope tĩnh: thêm service Google mới (GmailApp, DriveApp…) mà **quên bổ sung scope** vào `appsscript.json` sẽ bị chặn thầm lặng. Thêm service mới → thêm scope tương ứng, `clasp push --force`, `clasp deploy`, rồi **user bấm Run một hàm bất kỳ trong GAS Editor** để cấp quyền lại (nếu không, webhook lỗi quyền → Telegram nhận 302 → kẹt hàng đợi).
 
 ---
 

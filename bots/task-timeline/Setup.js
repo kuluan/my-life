@@ -120,6 +120,7 @@ function dailyJob() {
   if (typeof syncRegistry === "function") {
     try { syncRegistry(); } catch (e) { Logger.log("dailyJob syncRegistry lỗi: " + e); }
   }
+  flushLogs_(); // dailyJob có thể gửi tin nhắn → đẩy log đang đệm xuống Sheet
 }
 
 /** Hàm test chạy trong GAS Editor — không cần Telegram. */
