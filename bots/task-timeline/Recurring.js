@@ -2,7 +2,11 @@
  * Recurring.js — việc lặp + streak + sinh task hằng ngày.
  */
 
-/** Thêm định nghĩa việc lặp. */
+/**
+ * Thêm định nghĩa việc lặp.
+ * intent.streak (tuỳ chọn): chuỗi ngày đã duy trì sẵn — hiểu là "tính đến hôm nay, hôm nay đã xong",
+ * nên đặt last_done_date = hôm nay và KHÔNG tạo task todo cho hôm nay nữa.
+ */
 function recurringAdd(chatId, intent) {
   var title = (intent.title || "").trim();
   var schedule = (intent.schedule || "").trim();
@@ -11,18 +15,51 @@ function recurringAdd(chatId, intent) {
     return;
   }
   var cat = normalizeCategory_(intent.category);
+  var streak = Math.max(0, parseInt(intent.streak, 10) || 0);
+  var today = todayStr_();
   var id = nextId_(SHEET_RECURRING, "R");
   appendRow_(SHEET_RECURRING, {
     id: id, title: title, schedule: schedule, category: cat, active: true,
-    current_streak: 0, longest_streak: 0, last_done_date: "", streak_saves: MAX_STREAK_SAVES,
+    current_streak: streak, longest_streak: streak,
+    last_done_date: streak > 0 ? today : "",
+    streak_saves: MAX_STREAK_SAVES,
     created_at: fmtDateTime_(now_())
   });
   var msg = "🔁 Đã tạo việc lặp <b>" + esc_(title) + "</b> · " + esc_(schedule) + (cat ? " · " + cat : "");
-  if (isScheduled_(schedule, todayStr_())) {
-    ensureTaskForRecurring_({ id: id, title: title, category: cat }, todayStr_());
+  if (streak > 0) {
+    msg += "\n🔥 Chuỗi hiện tại: <b>" + streak + "</b> (tính hôm nay " + today + " là đã xong)." +
+      "\n   Hoàn thành ngày mai sẽ thành " + (streak + 1) + ".";
+  }
+  if (isScheduled_(schedule, today) && streak === 0) {
+    ensureTaskForRecurring_({ id: id, title: title, category: cat }, today);
     msg += "\n📋 Đã thêm vào task hôm nay.";
   }
   sendMessage(chatId, msg);
+}
+
+/** Đặt lại chuỗi cho một việc lặp đã có (khai báo streak sẵn có / sửa sai). */
+function streakSet(chatId, intent) {
+  var target = (intent.target || intent.title || "").trim();
+  var n = parseInt(intent.streak, 10);
+  if (!target || isNaN(n) || n < 0) {
+    sendMessage(chatId, "⚠️ Cần tên việc lặp + số chuỗi. Ví dụ: <code>đặt chuỗi Duolingo là 928</code>");
+    return;
+  }
+  var rows = readRows_(SHEET_RECURRING);
+  for (var i = 0; i < rows.length; i++) {
+    if (matchName_(rows[i].title, target)) {
+      var today = todayStr_();
+      var longest = Math.max(Number(rows[i].longest_streak) || 0, n);
+      updateRow_(SHEET_RECURRING, rows[i]._row, {
+        current_streak: n, longest_streak: longest, last_done_date: n > 0 ? today : ""
+      });
+      sendMessage(chatId, "🔥 <b>" + esc_(rows[i].title) + "</b> — chuỗi đặt thành <b>" + n + "</b>" +
+        " (kỷ lục " + longest + ")" +
+        (n > 0 ? "\n   Tính hôm nay " + today + " là đã xong; ngày mai hoàn thành sẽ thành " + (n + 1) + "." : ""));
+      return;
+    }
+  }
+  sendMessage(chatId, "⚠️ Không thấy việc lặp khớp \"" + esc_(target) + "\". Xem danh sách bằng /streak.");
 }
 
 function streakView(chatId) {

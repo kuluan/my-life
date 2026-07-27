@@ -61,7 +61,7 @@ function buildParsePrompt_(text, cats, today) {
     "Danh mục hợp lệ (category): " + cats + ".",
     "",
     "Phân tích tin nhắn và trả về DUY NHẤT một JSON với các trường:",
-    "- intent: một trong [task_add, task_list, task_complete, task_postpone, task_note, task_delete, timeline_start, timeline_stop, timeline_range, timeline_list, timeline_delete, recurring_add, streak_view, recurring_stop, help, unknown]",
+    "- intent: một trong [task_add, task_list, task_complete, task_postpone, task_note, task_delete, timeline_start, timeline_stop, timeline_range, timeline_list, timeline_delete, recurring_add, streak_view, streak_set, recurring_stop, help, unknown]",
     "- title: tên việc/hoạt động (string) hoặc null",
     "- date: 'YYYY-MM-DD' nếu suy ra được, ngược lại null",
     "- time: 'HH:MM' cho mốc đơn (bắt đầu/kết thúc tại một thời điểm), null nếu không có",
@@ -70,6 +70,7 @@ function buildParsePrompt_(text, cats, today) {
     "- category: đúng một giá trị trong danh mục hợp lệ, hoặc null",
     "- priority: 'cao' | 'vừa' | 'thấp' hoặc null",
     "- schedule: 'daily' | 'weekly:Mon,Wed,Fri' | 'monthly:1,15' cho việc lặp, null nếu không",
+    "- streak: số nguyên — chuỗi ngày user khai là ĐÃ duy trì được (vd 'hôm nay là ngày 928', 'đang streak 928 ngày'), null nếu không nhắc tới",
     "- note: ghi chú (string) hoặc null",
     "- target: cụm từ để KHỚP task/hoạt động đã tồn tại (khi hoàn thành/kết thúc/hoãn/xóa), null nếu không",
     "",
@@ -78,6 +79,9 @@ function buildParsePrompt_(text, cats, today) {
     "- 'X từ H1 đến H2' → timeline_range.",
     "- 'thêm task X'/'/task X' → task_add. '/tasks' hoặc 'xem task' → task_list.",
     "- 'lặp'/'/repeat' kèm lịch → recurring_add. '/streak' → streak_view.",
+    "- 'mục tiêu/thói quen/duy trì X mỗi ngày|hằng ngày|hàng ngày' → recurring_add với schedule='daily' (X là title).",
+    "- Nếu câu tạo việc lặp có kèm số ngày đã duy trì ('hôm nay là ngày 928', 'được 928 ngày rồi') → recurring_add kèm streak=928.",
+    "- 'đặt/sửa chuỗi|streak của X là N' cho việc lặp ĐÃ có → streak_set (target=X, streak=N).",
     "- Không rõ → intent='unknown'.",
     "Chỉ trả JSON, không kèm giải thích, không markdown.",
     "",
@@ -92,9 +96,15 @@ function testGeminiParse() {
     "thêm task đưa con đi học ngày mai ưu tiên cao",
     "đọc sách từ 21:00 đến 21:30",
     "xong code app",
-    "/repeat tập gym daily"
+    "/repeat tập gym daily",
+    "tôi muốn thêm mục tiêu học Duolingo mỗi ngày, hôm nay là ngày 928 của tôi",
+    "đặt chuỗi Duolingo là 928"
   ];
+  var out = [];
   samples.forEach(function (s) {
-    Logger.log(s + "  →  " + JSON.stringify(geminiParse(s, DEFAULT_CATEGORIES)));
+    var r = s + "  →  " + JSON.stringify(geminiParse(s, DEFAULT_CATEGORIES));
+    Logger.log(r);
+    out.push(r);
   });
+  return out.join("\n");
 }

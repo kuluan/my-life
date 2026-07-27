@@ -79,6 +79,7 @@ function dispatchIntent_(chatId, i) {
     case "timeline_delete": deleteTimelineByTarget(chatId, i.target || i.title); break;
     case "recurring_add": recurringAdd(chatId, i); break;
     case "streak_view": streakView(chatId); break;
+    case "streak_set": streakSet(chatId, i); break;
     case "recurring_stop": recurringStop(chatId, i.target || i.title); break;
     case "help": sendMessage(chatId, help()); break;
     default: sendMessage(chatId, "🤔 Chưa hiểu ý. Gõ /help để xem cú pháp.");
@@ -110,7 +111,7 @@ function start() {
   return "👋 <b>My-life · Task &amp; Timeline</b> " + APP_VERSION + "\n\n" +
     "• <b>Task</b>: <code>thêm task ...</code> · /tasks\n" +
     "• <b>Timeline</b>: <code>bắt đầu ...</code> · <code>xong ...</code> · /timeline\n" +
-    "• <b>Việc lặp</b>: <code>/repeat ... daily</code> · /streak\n\n" +
+    "• <b>Mục tiêu hằng ngày</b>: <code>/repeat ... daily</code> · /streak\n\n" +
     "Gõ /help để xem đầy đủ.";
 }
 
@@ -129,8 +130,11 @@ function help() {
     "• Khoảng: <code>đọc sách từ 20:00 đến 21:30</code>\n" +
     "• Xem: /timeline · /tl · <code>timeline hôm qua</code>\n" +
     "• Xoá: <code>xóa timeline code app</code>\n\n" +
-    "🔁 <b>VIỆC LẶP / STREAK</b>\n" +
-    "• Tạo: <code>/repeat tập gym daily</code> · <code>đi chợ weekly:Sun</code>\n" +
+    "🔁 <b>VIỆC LẶP / MỤC TIÊU HẰNG NGÀY</b>\n" +
+    "• Tạo: <code>/repeat tập gym daily</code> · <code>mục tiêu học Duolingo mỗi ngày</code>\n" +
+    "• Lịch khác: <code>đi chợ weekly:Sun</code> · <code>đóng tiền monthly:1</code>\n" +
+    "• Có sẵn chuỗi: <code>học Duolingo mỗi ngày, hôm nay là ngày 928</code>\n" +
+    "• Sửa chuỗi: <code>đặt chuỗi Duolingo là 928</code>\n" +
     "• Xem streak: /streak\n" +
     "• Dừng: <code>dừng lặp tập gym</code>\n\n" +
     "▶️ Bấm <b>Bắt đầu</b> dưới task để mở timeline; kết thúc sẽ tự hoàn thành task.";
@@ -176,7 +180,7 @@ function setupBotCommands() {
     { command: "timeline", description: "Xem timeline hôm nay" },
     { command: "tl", description: "Xem timeline (phím tắt)" },
     { command: "task", description: "Thêm task" },
-    { command: "repeat", description: "Tạo việc lặp" },
+    { command: "repeat", description: "Tạo việc lặp / mục tiêu hằng ngày" },
     { command: "streak", description: "Xem streak việc lặp" },
     { command: "help", description: "Hướng dẫn" },
     { command: "start", description: "Giới thiệu" }

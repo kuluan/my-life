@@ -35,11 +35,13 @@ var FEATURES = [
   ["repo", "clasp run (Execution API)", "AI tự chạy hàm cần OAuth (setup/syncRegistry/testGeminiParse/setWebhook...) từ CLI, không cần user bấm Run trong GAS Editor", "(hạ tầng dev, không phải lệnh bot)", "live", "v0.1.2"],
   ["task-timeline", "Nhật ký giao tiếp (Logs)", "Ghi lại mọi tin nhắn/callback vào và mọi phản hồi bot gửi ra vào tab Logs để xem lại khi cần", "(tự động, xem tab Logs)", "live", "v0.1.3"],
   ["task-timeline", "Chống trùng lặp update_id", "Bỏ qua update Telegram gửi lại (retry) trong 10 phút — tránh bot trả lời lặp khi webhook chậm", "(tự động, bên trong doPost)", "live", "v0.1.4"],
-  ["task-timeline", "Công cụ chẩn đoán webhook", "Xem trạng thái hàng đợi Telegram, đọc log gần nhất, gắn lại webhook khi kẹt", "clasp run debugWebhookInfo / debugReadLogs / resetWebhookDropPending", "live", "v0.1.5"]
+  ["task-timeline", "Công cụ chẩn đoán webhook", "Xem trạng thái hàng đợi Telegram, đọc log gần nhất, gắn lại webhook khi kẹt", "clasp run debugWebhookInfo / debugReadLogs / resetWebhookDropPending", "live", "v0.1.5"],
+  ["task-timeline", "Mục tiêu hằng ngày kèm streak sẵn có", "Tạo việc lặp bằng câu tự nhiên và khai báo luôn chuỗi ngày đang duy trì; sửa lại chuỗi khi cần", "mục tiêu học Duolingo mỗi ngày, hôm nay là ngày 928 · đặt chuỗi X là N", "live", "v0.1.6"]
 ];
 
 // ---------- NGUỒN SỰ THẬT: NHẬT KÝ THAY ĐỔI (mới nhất lên đầu) ----------
 var CHANGELOG = [
+  ["2026-07-27 11:18", "Thêm mục tiêu hằng ngày bằng câu tự nhiên ('mục tiêu học Duolingo mỗi ngày') và khai báo được chuỗi sẵn có ('hôm nay là ngày 928'); thêm lệnh sửa chuỗi 'đặt chuỗi X là N'", "task-timeline", "Claude Opus 5", "v0.1.6", ""],
   ["2026-07-27 11:06", "Fix bot tắc không trả lời: doPost trả ContentService khiến Apps Script đáp 302, Telegram không xác nhận đã giao nên retry mãi 1 update và chặn mọi tin sau. Bỏ giá trị trả về → đáp 200. Kèm tối ưu tốc độ: gộp ghi Logs 1 lần + cache whitelist 5 phút", "task-timeline", "Claude Opus 5", "v0.1.5", ""],
   ["2026-07-27 10:33", "Fix sự cố bot spam trả lời lặp: thêm chống trùng lặp theo update_id (Telegram retry do webhook chậm) + cache Spreadsheet handle giảm độ trễ", "task-timeline", "Claude Sonnet 5", "v0.1.4", ""],
   ["2026-07-27 10:35", "Thêm tab Logs: ghi lại mọi giao tiếp vào/ra với bot (tin nhắn, callback, phản hồi) để xem lại khi cần kiểm tra", "task-timeline", "Claude Sonnet 5", "v0.1.3", ""],
