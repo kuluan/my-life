@@ -17,13 +17,17 @@ function createTimelineBlock_(date, title, start, end, cat, taskId) {
   return id;
 }
 
-/** Bắt đầu 1 block (từ NL). Không gắn task. */
+/**
+ * Bắt đầu 1 block (từ NL). Không gắn task.
+ * Nhận cả `time` ("lúc 10:00") lẫn `start_time` ("từ 10:00" — parser xếp vào ô khoảng),
+ * nếu không có giờ nào thì lấy giờ hiện tại.
+ */
 function timelineStart(chatId, intent) {
   var title = (intent.title || "").trim();
   if (!title) { sendMessage(chatId, "⚠️ Bắt đầu việc gì? Ví dụ: <code>bắt đầu code app</code>"); return; }
-  var start = normTime_(intent.time) || fmtTimeNow_();
+  var start = normTime_(intent.time) || normTime_(intent.start_time) || fmtTimeNow_();
   var cat = normalizeCategory_(intent.category);
-  var id = createTimelineBlock_(todayStr_(), title, start, "", cat, "");
+  var id = createTimelineBlock_(intent.date || todayStr_(), title, start, "", cat, "");
   sendMessage(chatId, "▶️ Bắt đầu <b>" + esc_(title) + "</b> lúc " + start + (cat ? " · " + cat : ""), timelineStopButton_(id));
 }
 
@@ -48,7 +52,8 @@ function timelineStopById(chatId, id, time, callbackId) {
 function timelineStop(chatId, intent) {
   var b = findOpenBlock_(intent.target || intent.title);
   if (!b) { sendMessage(chatId, "⚠️ Không có hoạt động đang chạy để kết thúc."); return; }
-  finishBlock_(chatId, b, intent.time, null);
+  // "xong X lúc 11:30" → time; "xong X đến 11:30" → end_time. Nhận cả hai.
+  finishBlock_(chatId, b, intent.time || intent.end_time, null);
 }
 
 function finishBlock_(chatId, b, time, callbackId) {

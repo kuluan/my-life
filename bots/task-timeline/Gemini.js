@@ -76,7 +76,9 @@ function buildParsePrompt_(text, cats, today) {
     "",
     "Quy tắc:",
     "- 'bắt đầu X' → timeline_start; 'xong X'/'stop' → timeline_stop (target=X).",
-    "- 'X từ H1 đến H2' → timeline_range.",
+    "- 'X từ H1 đến H2' (có ĐỦ cả 2 giờ) → timeline_range.",
+    "- 'X từ H1' / 'X lúc H1' (CHỈ có giờ bắt đầu, chưa kết thúc) → timeline_start với time=H1.",
+    "- '/tl X' hoặc '/timeline X' kèm tên hoạt động → timeline_start (không phải xem danh sách).",
     "- 'thêm task X'/'/task X' → task_add. '/tasks' hoặc 'xem task' → task_list.",
     "- 'lặp'/'/repeat' kèm lịch → recurring_add. '/streak' → streak_view.",
     "- 'mục tiêu/thói quen/duy trì X mỗi ngày|hằng ngày|hàng ngày' → recurring_add với schedule='daily' (X là title).",
@@ -87,6 +89,11 @@ function buildParsePrompt_(text, cats, today) {
     "",
     "Tin nhắn: " + JSON.stringify(text)
   ].join("\n");
+}
+
+/** Debug: parse một câu bất kỳ. Gọi qua `clasp run debugParse -p '["câu cần thử"]'`. */
+function debugParse(text) {
+  return JSON.stringify(geminiParse(text, getCategories_()));
 }
 
 /** Test trong GAS Editor (cần GEMINI_API_KEY). Không cần Telegram. */

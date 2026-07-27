@@ -41,6 +41,7 @@ var FEATURES = [
 
 // ---------- NGUỒN SỰ THẬT: NHẬT KÝ THAY ĐỔI (mới nhất lên đầu) ----------
 var CHANGELOG = [
+  ["2026-07-27 11:32", "Fix: '/tl <việc> từ 10:00' bị ghi nhầm giờ hiện tại — timelineStart giờ nhận cả start_time, timelineStop nhận cả end_time; prompt phân biệt rõ 'từ H1' (bắt đầu) với 'từ H1 đến H2' (khoảng trọn)", "task-timeline", "Claude Opus 5", "v0.1.7", ""],
   ["2026-07-27 11:18", "Thêm mục tiêu hằng ngày bằng câu tự nhiên ('mục tiêu học Duolingo mỗi ngày') và khai báo được chuỗi sẵn có ('hôm nay là ngày 928'); thêm lệnh sửa chuỗi 'đặt chuỗi X là N'", "task-timeline", "Claude Opus 5", "v0.1.6", ""],
   ["2026-07-27 11:06", "Fix bot tắc không trả lời: doPost trả ContentService khiến Apps Script đáp 302, Telegram không xác nhận đã giao nên retry mãi 1 update và chặn mọi tin sau. Bỏ giá trị trả về → đáp 200. Kèm tối ưu tốc độ: gộp ghi Logs 1 lần + cache whitelist 5 phút", "task-timeline", "Claude Opus 5", "v0.1.5", ""],
   ["2026-07-27 10:33", "Fix sự cố bot spam trả lời lặp: thêm chống trùng lặp theo update_id (Telegram retry do webhook chậm) + cache Spreadsheet handle giảm độ trễ", "task-timeline", "Claude Sonnet 5", "v0.1.4", ""],
