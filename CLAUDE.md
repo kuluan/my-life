@@ -39,8 +39,8 @@ Domain đầu tiên đang xây: **`bots/task-timeline`** — xem [docs/task-time
 3. **TEST / verify (BẮT BUỘC)** — mục 3. CẤM deploy nếu chưa test xong hoặc còn lỗi.
 4. **Bump version PATCH** nếu ảnh hưởng production — mục 4.
 5. **Cập nhật Registry** (Nhật ký thay đổi + Danh mục tính năng) — **BẮT BUỘC**, mục 5.1.
-6. **Deploy** — mục 5.
-7. **Commit + push** `master`.
+6. **Phát hành**: chạy `./release.sh vX.Y.Z "mô tả"` — gộp test + `clasp push` + `clasp deploy` (đè đúng ID) + commit + push + **báo tin Telegram**. Xem mục 5.2.
+7. Nhờ user test luồng thật qua Telegram.
 
 ---
 
@@ -98,6 +98,20 @@ cd bots/<domain> && clasp push          # cập nhật code trong project
 > Hệ quả của scope tĩnh: thêm service Google mới (GmailApp, DriveApp…) mà **quên bổ sung scope** vào `appsscript.json` sẽ bị chặn thầm lặng. Thêm service mới → thêm scope tương ứng, `clasp push --force`, `clasp deploy`, rồi **user bấm Run một hàm bất kỳ trong GAS Editor** để cấp quyền lại (nếu không, webhook lỗi quyền → Telegram nhận 302 → kẹt hàng đợi).
 
 ---
+
+## 5.2 Phát hành bằng `release.sh` (khuyến nghị)
+
+```bash
+./release.sh v0.1.11 "mô tả ngắn"        # domain mặc định: task-timeline
+./release.sh v0.2.0 "mô tả" ten-domain   # domain khác
+```
+
+Script chạy tuần tự và **dừng ngay khi có bước lỗi**: đối chiếu `APP_VERSION` ↔ version release · kiểm tra Registry đã có dòng CHANGELOG cho version đó · `node --check` + kiểm trùng tên hàm · `clasp push` · `clasp deploy` đè đúng ID đọc từ `bots/<domain>/README.md` · commit + push · **gọi `notifyRelease()` báo tin Telegram**.
+
+> [!WARNING]
+> Thông báo Telegram **chỉ gửi khi deploy VÀ push đều thành công** — không báo "đã phát hành" cho thứ chưa lên production. Token Telegram không đi qua shell: việc gửi do hàm GAS `notifyRelease()` thực hiện, chat id lấy từ `BOT_CHAT_ID` (Script Properties), **không hardcode chat id cá nhân vào repo**.
+
+Vẫn deploy tay được (mục 5) khi cần, nhưng khi đó nhớ gọi `clasp -u run run notifyRelease -p '["vX.Y.Z","mô tả"]'`.
 
 ## 5.1 Registry — Nhật ký thay đổi & Danh mục tính năng (BẮT BUỘC)
 

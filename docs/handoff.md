@@ -48,10 +48,12 @@ Parser = **Gemini NL là chính**. Thêm ý định mới = sửa `buildParsePro
 4. **TEST:** `node --check *.js`; kiểm trùng tên hàm (`grep -hoE '^function [A-Za-z0-9_]+' *.js | sort | uniq -d`); nếu chạm parser, nhờ user chạy `testGeminiParse()`.
 5. Bump `APP_VERSION` PATCH (Config.js) nếu ảnh hưởng production.
 6. **Cập nhật Registry (BẮT BUỘC):** thêm 1 dòng đầu `CHANGELOG` + cập nhật `FEATURES` trong `Registry.js` (CLAUDE.md mục 5.1).
-7. `clasp push`. Nếu chạm `doPost`/webhook: `clasp deploy -i AKfycbwu-BnaS3JeT2r5nXLUKBBYPCZA8DYeSc7n2CaT8MeIUdGu4e7VJNq6HtrsJuCxyAqR -d "vX.Y.Z - mô tả"`.
-8. Nhờ user (hoặc để `dailyJob`) chạy `syncRegistry()` để cập nhật sheet.
-9. `git add -A && git commit -m "vX.Y.Z - ..." && git push origin master`.
+7. **Phát hành một lệnh:** `./release.sh vX.Y.Z "mô tả"` — tự làm: kiểm version ↔ Registry, `node --check` + trùng tên hàm, `clasp push`, `clasp deploy` đè đúng ID, commit + push `master`, rồi **báo tin Telegram** (chỉ khi deploy + push đều OK). Xem CLAUDE.md mục 5.2.
+8. Chạy `syncRegistry()` (`clasp -u run run syncRegistry`) để cập nhật sheet Registry.
+9. Kiểm tra đã nhận tin `🚀 My-life vX.Y.Z deployed` trên Telegram.
 10. Nhờ user test luồng thật qua Telegram.
+
+> Deploy tay (không dùng script) thì nhớ gọi `clasp -u run run notifyRelease -p '["vX.Y.Z","mô tả"]'`.
 
 ## 6. Giới hạn của AI qua CLI (quan trọng)
 - **KHÔNG chạy được hàm GAS** (`clasp run` cần deploy "API executable" — chưa bật). Các hàm cần OAuth (`setup`, `testGeminiParse`, `syncRegistry`, `setWebhook`, `setupBotCommands`) **phải nhờ user bấm Run** trong GAS Editor.
