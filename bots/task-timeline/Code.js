@@ -67,12 +67,15 @@ function routeMessage_(message) {
   if (lower === "/timeline" || lower === "/tl") { timelineList(chatId, todayStr_()); return; }
   if (lower === "/streak") { streakView(chatId); return; }
 
-  // "/timeline <tham số>" / "/tl <tham số>": nếu tham số parse được thành ngày (30/07, hôm qua,
-  // 2026-07-30...) → xem danh sách ngày đó, deterministic không tốn Gemini. Nếu không parse được
-  // (vd tên hoạt động, "/tl code app") → rơi xuống Gemini như cũ (timeline_start).
+  // "/timeline <tham số>" / "/tl <tham số>": ưu tiên khớp "tuần ..." (xem tóm tắt cả tuần) rồi
+  // đến ngày đơn (30/07, hôm qua, 2026-07-30...) — cả hai deterministic, không tốn Gemini. Nếu
+  // không khớp gì (vd tên hoạt động, "/tl code app") → rơi xuống Gemini như cũ (timeline_start).
   var tlMatch = text.match(/^\/(timeline|tl)\s+(.+)$/i);
   if (tlMatch) {
-    var tlDate = parseDateInput_(tlMatch[2].trim());
+    var tlArg = tlMatch[2].trim();
+    var tlMonday = parseWeekArg_(tlArg);
+    if (tlMonday) { timelineWeek(chatId, tlMonday); return; }
+    var tlDate = parseDateInput_(tlArg);
     if (tlDate) { timelineList(chatId, tlDate); return; }
   }
 
@@ -134,6 +137,8 @@ function handleCallback_(cq) {
     case "tok": confirmTimelineEntry_(chatId, msgId, id, cbId, extra); break;
     // --- xem /timeline theo ngày: chọn 1 entry từ danh sách để mở menu đầy đủ ---
     case "tlpick": openTimelineEntryFromList_(chatId, msgId, id, extra, cbId); break;
+    // --- xem /timeline theo tuần: chọn 1 ngày để mở chi tiết ngày đó ---
+    case "tlwd": openTimelineDayFromWeek_(chatId, msgId, id, cbId); break;
     case "keep": answerCallbackQuery(cbId, "👍 Ok, tiếp tục nhé"); break;  // nhắc nhở: vẫn đang làm
     case "tlview": answerCallbackQuery(cbId, ""); timelineList(chatId, todayStr_()); break;
     case "cancel": answerCallbackQuery(cbId, "Đã huỷ"); break;
@@ -164,6 +169,8 @@ function help() {
     "• Khoảng: <code>đọc sách từ 20:00 đến 21:30</code>\n" +
     "• Xem: /timeline · /tl · <code>/timeline hôm qua</code> · <code>/timeline 30/07</code>\n" +
     "   → bấm vào 1 dòng trong danh sách để mở menu sửa/xoá luôn, xong tự quay lại danh sách\n" +
+    "• Xem theo tuần: <code>/timeline tuần này</code> · <code>/timeline tuần trước</code> · <code>/timeline tuần 28/07</code>\n" +
+    "   → tóm tắt từng ngày (tổng giờ · hoạt động nổi bật), bấm 1 ngày để xem chi tiết\n" +
     "• Xoá: <code>xóa timeline code app</code>\n" +
     "• <b>Menu sửa</b>: mỗi hoạt động vừa tạo/kết thúc đều kèm nút\n" +
     "   ✏️ tên · 📝 ghi chú · 🕐 giờ bắt đầu · 🕑 giờ kết thúc · 📅 ngày · 🗑️ xoá\n" +
