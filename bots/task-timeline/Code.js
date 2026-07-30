@@ -67,6 +67,15 @@ function routeMessage_(message) {
   if (lower === "/timeline" || lower === "/tl") { timelineList(chatId, todayStr_()); return; }
   if (lower === "/streak") { streakView(chatId); return; }
 
+  // "/timeline <tham số>" / "/tl <tham số>": nếu tham số parse được thành ngày (30/07, hôm qua,
+  // 2026-07-30...) → xem danh sách ngày đó, deterministic không tốn Gemini. Nếu không parse được
+  // (vd tên hoạt động, "/tl code app") → rơi xuống Gemini như cũ (timeline_start).
+  var tlMatch = text.match(/^\/(timeline|tl)\s+(.+)$/i);
+  if (tlMatch) {
+    var tlDate = parseDateInput_(tlMatch[2].trim());
+    if (tlDate) { timelineList(chatId, tlDate); return; }
+  }
+
   // Còn lại (kể cả slash có tham số, và mọi câu tự nhiên) → Gemini.
   var intent = geminiParse(text, getCategories_());
   if (!intent || !intent.intent) { sendMessage(chatId, "🤔 Chưa hiểu ý. Gõ /help để xem cú pháp."); return; }
@@ -100,9 +109,12 @@ function handleCallback_(cq) {
   var msgId = cq.message.message_id;
   var cbId = cq.id;
   var data = String(cq.data || "");
-  var idx = data.indexOf(":");
-  var action = idx >= 0 ? data.slice(0, idx) : data;
-  var id = idx >= 0 ? data.slice(idx + 1) : "";
+  var parts = data.split(":");
+  var action = parts[0];
+  var id = parts[1] || "";
+  // extra: ngày của danh sách /timeline mà entry được mở từ đó — dùng để quay lại đúng danh
+  // sách sau khi sửa/xoá (mục 3 tính năng "xem timeline theo ngày kèm menu"). Rỗng nếu không có.
+  var extra = parts[2] || "";
 
   switch (action) {
     case "ts": startTimelineForTask(chatId, id, cbId); break;   // task ▶️ bắt đầu
@@ -110,16 +122,18 @@ function handleCallback_(cq) {
     case "tx": askDeleteTask(chatId, id, cbId); break;          // task 🗑 hỏi
     case "txok": deleteTaskConfirmed(chatId, id, cbId); break;   // task xoá xác nhận
     case "ls": timelineStopById(chatId, id, "", cbId); break;    // timeline ⏹️ kết thúc
-    case "lx": askDeleteTimeline(chatId, id, cbId); break;      // timeline 🗑 hỏi
-    case "lxok": deleteTimelineConfirmed(chatId, id, cbId); break; // timeline xoá xác nhận
+    case "lx": askDeleteTimeline(chatId, id, cbId, extra); break;      // timeline 🗑 hỏi
+    case "lxok": deleteTimelineConfirmed(chatId, id, cbId, extra, msgId); break; // timeline xoá xác nhận
     // --- menu tương tác của timeline entry (TimelineEdit.js) ---
-    case "te": askTimelineEdit_(chatId, msgId, id, "title", cbId); break;
-    case "tn": askTimelineEdit_(chatId, msgId, id, "note", cbId); break;
-    case "tb": askTimelineEdit_(chatId, msgId, id, "start", cbId); break;
-    case "tf": askTimelineEdit_(chatId, msgId, id, "end", cbId); break;
-    case "tdate": askTimelineEdit_(chatId, msgId, id, "date", cbId); break;
-    case "tcancel": cancelTimelineEdit_(chatId, msgId, id, cbId); break;
-    case "tok": confirmTimelineEntry_(chatId, msgId, id, cbId); break;
+    case "te": askTimelineEdit_(chatId, msgId, id, "title", cbId, extra); break;
+    case "tn": askTimelineEdit_(chatId, msgId, id, "note", cbId, extra); break;
+    case "tb": askTimelineEdit_(chatId, msgId, id, "start", cbId, extra); break;
+    case "tf": askTimelineEdit_(chatId, msgId, id, "end", cbId, extra); break;
+    case "tdate": askTimelineEdit_(chatId, msgId, id, "date", cbId, extra); break;
+    case "tcancel": cancelTimelineEdit_(chatId, msgId, id, cbId, extra); break;
+    case "tok": confirmTimelineEntry_(chatId, msgId, id, cbId, extra); break;
+    // --- xem /timeline theo ngày: chọn 1 entry từ danh sách để mở menu đầy đủ ---
+    case "tlpick": openTimelineEntryFromList_(chatId, msgId, id, extra, cbId); break;
     case "keep": answerCallbackQuery(cbId, "👍 Ok, tiếp tục nhé"); break;  // nhắc nhở: vẫn đang làm
     case "tlview": answerCallbackQuery(cbId, ""); timelineList(chatId, todayStr_()); break;
     case "cancel": answerCallbackQuery(cbId, "Đã huỷ"); break;
@@ -148,7 +162,8 @@ function help() {
     "• Bắt đầu: <code>bắt đầu code app</code> · <code>code app lúc 20:00</code>\n" +
     "• Kết thúc: nút ⏹️ · <code>xong code app</code>\n" +
     "• Khoảng: <code>đọc sách từ 20:00 đến 21:30</code>\n" +
-    "• Xem: /timeline · /tl · <code>timeline hôm qua</code>\n" +
+    "• Xem: /timeline · /tl · <code>/timeline hôm qua</code> · <code>/timeline 30/07</code>\n" +
+    "   → bấm vào 1 dòng trong danh sách để mở menu sửa/xoá luôn, xong tự quay lại danh sách\n" +
     "• Xoá: <code>xóa timeline code app</code>\n" +
     "• <b>Menu sửa</b>: mỗi hoạt động vừa tạo/kết thúc đều kèm nút\n" +
     "   ✏️ tên · 📝 ghi chú · 🕐 giờ bắt đầu · 🕑 giờ kết thúc · 📅 ngày · 🗑️ xoá\n" +

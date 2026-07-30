@@ -45,16 +45,21 @@ function renderTimelineEntry_(b) {
     (b.note ? "\n📝 " + esc_(b.note) : "");
 }
 
-/** Inline keyboard đầy đủ cho entry. */
-function timelineMenu_(b) {
+/**
+ * Inline keyboard đầy đủ cho entry.
+ * @param {string} [backDate] Nếu entry được mở từ danh sách /timeline của ngày này, đính kèm
+ *   ngày đó vào callback_data (action:id:backDate) để "Xác nhận & lưu"/"Xoá" quay lại đúng danh sách.
+ */
+function timelineMenu_(b, backDate) {
   var id = b.id;
+  var suf = backDate ? (":" + backDate) : "";
   var rows = [
-    [btn("✏️ Sửa tên", "te:" + id), btn("📝 Ghi chú", "tn:" + id)],
-    [btn("🕐 Giờ bắt đầu", "tb:" + id), btn("🕑 Giờ kết thúc", "tf:" + id)],
-    [btn("📅 Đổi ngày", "tdate:" + id), btn("🗑️ Xoá", "lx:" + id)]
+    [btn("✏️ Sửa tên", "te:" + id + suf), btn("📝 Ghi chú", "tn:" + id + suf)],
+    [btn("🕐 Giờ bắt đầu", "tb:" + id + suf), btn("🕑 Giờ kết thúc", "tf:" + id + suf)],
+    [btn("📅 Đổi ngày", "tdate:" + id + suf), btn("🗑️ Xoá", "lx:" + id + suf)]
   ];
   if (!b.end_at) rows.push([btn("⏹️ Kết thúc ngay", "ls:" + id)]);
-  rows.push([btn("✅ Xác nhận & lưu", "tok:" + id)]);
+  rows.push([btn("✅ Xác nhận & lưu", "tok:" + id + suf)]);
   return rows;
 }
 
@@ -65,40 +70,56 @@ function sendTimelineCard_(chatId, id, header) {
   sendMessage(chatId, (header ? header + "\n\n" : "") + renderTimelineEntry_(b), timelineMenu_(b));
 }
 
+/** Mở menu đầy đủ của 1 entry ngay trong tin nhắn danh sách (bấm chọn từ /timeline). */
+function openTimelineEntryFromList_(chatId, msgId, id, backDate, callbackId) {
+  var b = findById_(SHEET_TIMELINE, id);
+  if (!b) { if (callbackId) answerCallbackQuery(callbackId, "Không tìm thấy"); return; }
+  editMessageText(chatId, msgId, renderTimelineEntry_(b), timelineMenu_(b, backDate));
+  if (callbackId) answerCallbackQuery(callbackId, "");
+}
+
 /** Vẽ lại menu vào đúng tin nhắn cũ. */
-function refreshTimelineCard_(chatId, msgId, id, note) {
+function refreshTimelineCard_(chatId, msgId, id, note, backDate) {
   var b = findById_(SHEET_TIMELINE, id);
   if (!b) { editMessageText(chatId, msgId, "🗑 Hoạt động đã bị xoá."); return; }
-  editMessageText(chatId, msgId, renderTimelineEntry_(b) + (note ? "\n\n" + note : ""), timelineMenu_(b));
+  editMessageText(chatId, msgId, renderTimelineEntry_(b) + (note ? "\n\n" + note : ""), timelineMenu_(b, backDate));
 }
 
 // ---------- xử lý nút ----------
 
 /** Bấm nút sửa một trường → hỏi giá trị ngay trên tin nhắn menu. */
-function askTimelineEdit_(chatId, msgId, id, field, callbackId) {
+function askTimelineEdit_(chatId, msgId, id, field, callbackId, backDate) {
   var b = findById_(SHEET_TIMELINE, id);
   if (!b) { if (callbackId) answerCallbackQuery(callbackId, "Không tìm thấy"); return; }
   var f = TL_FIELDS[field];
-  setPending_(chatId, { field: field, id: id, msgId: msgId });
+  setPending_(chatId, { field: field, id: id, msgId: msgId, backDate: backDate || "" });
   editMessageText(chatId, msgId,
     renderTimelineEntry_(b) + "\n\n" + f.icon + " " + f.ask,
-    [[btn("↩️ Huỷ", "tcancel:" + id)]]);
+    [[btn("↩️ Huỷ", "tcancel:" + id + (backDate ? ":" + backDate : ""))]]);
   if (callbackId) answerCallbackQuery(callbackId, f.label);
 }
 
 /** Huỷ chờ nhập, quay lại menu. */
-function cancelTimelineEdit_(chatId, msgId, id, callbackId) {
+function cancelTimelineEdit_(chatId, msgId, id, callbackId, backDate) {
   clearPending_(chatId);
-  refreshTimelineCard_(chatId, msgId, id, "");
+  refreshTimelineCard_(chatId, msgId, id, "", backDate);
   if (callbackId) answerCallbackQuery(callbackId, "Đã huỷ");
 }
 
-/** ✅ Xác nhận & lưu: chốt entry, gỡ menu khỏi tin nhắn. */
-function confirmTimelineEntry_(chatId, msgId, id, callbackId) {
+/**
+ * ✅ Xác nhận & lưu: chốt entry. Nếu được mở từ danh sách /timeline (có backDate) → quay lại
+ * đúng danh sách ngày đó (mục 3, thay vì thoát hẳn về tin "Đã lưu" chết).
+ */
+function confirmTimelineEntry_(chatId, msgId, id, callbackId, backDate) {
   clearPending_(chatId);
   var b = findById_(SHEET_TIMELINE, id);
   if (!b) { if (callbackId) answerCallbackQuery(callbackId, "Không tìm thấy"); return; }
-  editMessageText(chatId, msgId, renderTimelineEntry_(b) + "\n\n✅ <i>Đã lưu.</i>");
+  if (backDate) {
+    var view = buildTimelineListView_(backDate);
+    editMessageText(chatId, msgId, "✅ <i>Đã lưu.</i>\n\n" + view.text, view.keyboard);
+  } else {
+    editMessageText(chatId, msgId, renderTimelineEntry_(b) + "\n\n✅ <i>Đã lưu.</i>");
+  }
   if (callbackId) answerCallbackQuery(callbackId, "✅ Đã lưu");
 }
 
@@ -117,14 +138,14 @@ function applyTimelineEdit_(chatId, pend, text) {
     var f = TL_FIELDS[pend.field];
     editMessageText(chatId, pend.msgId,
       renderTimelineEntry_(b) + "\n\n⚠️ " + res.err + "\n" + f.icon + " " + f.ask,
-      [[btn("↩️ Huỷ", "tcancel:" + pend.id)]]);
+      [[btn("↩️ Huỷ", "tcancel:" + pend.id + (pend.backDate ? ":" + pend.backDate : ""))]]);
     return true;
   }
 
   clearPending_(chatId);
   updateRow_(SHEET_TIMELINE, b._row, res.patch);
   refreshTimelineCard_(chatId, pend.msgId, pend.id,
-    "✅ <i>Đã cập nhật " + TL_FIELDS[pend.field].label.toLowerCase() + ".</i>");
+    "✅ <i>Đã cập nhật " + TL_FIELDS[pend.field].label.toLowerCase() + ".</i>", pend.backDate);
   return true;
 }
 

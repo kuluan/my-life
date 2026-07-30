@@ -26,7 +26,7 @@ var FEATURES = [
   ["task-timeline", "Hoàn thành / hoãn / ghi chú / xóa task", "Thao tác task qua nút hoặc câu tự nhiên", "nút ✅🗑 · xong X · hoãn X · note X:", "live", "v0.1.0"],
   ["task-timeline", "Timeline bắt đầu / kết thúc", "Ghi hoạt động thời gian thực, hỗ trợ lùi giờ", "bắt đầu X · xong X · nút ⏹️", "live", "v0.1.0"],
   ["task-timeline", "Timeline khoảng trọn", "Ghi 1 khoảng có giờ bắt đầu–kết thúc", "X từ 20:00 đến 21:30", "live", "v0.1.0"],
-  ["task-timeline", "Xem timeline + tổng thời lượng", "Danh sách block trong ngày + tổng phút theo category", "/timeline · /tl", "live", "v0.1.0"],
+  ["task-timeline", "Xem timeline + tổng thời lượng", "Danh sách block trong ngày + tổng phút theo category", "/timeline · /tl · /timeline hôm qua · /timeline 30/07", "live", "v0.1.0"],
   ["task-timeline", "Liên kết Task ↔ Timeline", "Bắt đầu từ task → mở timeline; kết thúc → tự hoàn thành task", "nút ▶️ dưới task", "live", "v0.1.0"],
   ["task-timeline", "Việc lặp + streak", "Định nghĩa việc lặp, đếm chuỗi, 3 lượt cứu streak", "/repeat ... daily · /streak · dừng lặp X", "live", "v0.1.0"],
   ["task-timeline", "Tự sinh task lặp hằng ngày", "Trigger 5h sáng tạo task cho việc lặp tới hạn", "(tự động)", "live", "v0.1.0"],
@@ -40,11 +40,13 @@ var FEATURES = [
   ["task-timeline", "Menu tương tác timeline entry", "Mỗi entry vừa tạo/kết thúc kèm inline keyboard: sửa tên, ghi chú, giờ bắt đầu/kết thúc, đổi ngày, xoá, xác nhận & lưu — bấm nút rồi gõ giá trị ở ô chat thường", "(nút dưới mỗi hoạt động)", "live", "v0.1.10"],
   ["task-timeline", "Nhập bù timeline ngày khác", "Tạo/chuyển hoạt động sang ngày bất kỳ khi quên ghi nhận", "nút 📅 Đổi ngày → 30/07 · hôm qua · 2 ngày trước", "live", "v0.1.10"],
   ["task-timeline", "Nhắc nhở timeline mỗi 60 phút", "Trigger theo giờ, khung 6h-21h: đang chạy hoạt động → nhắc cập nhật kèm nút; rảnh → nhắc ghi nhanh", "(tự động, chỉnh giờ ở REMINDER_START_HOUR/END_HOUR)", "live", "v0.1.9"],
-  ["task-timeline", "Mục tiêu hằng ngày kèm streak sẵn có", "Tạo việc lặp bằng câu tự nhiên và khai báo luôn chuỗi ngày đang duy trì; sửa lại chuỗi khi cần", "mục tiêu học Duolingo mỗi ngày, hôm nay là ngày 928 · đặt chuỗi X là N", "live", "v0.1.6"]
+  ["task-timeline", "Mục tiêu hằng ngày kèm streak sẵn có", "Tạo việc lặp bằng câu tự nhiên và khai báo luôn chuỗi ngày đang duy trì; sửa lại chuỗi khi cần", "mục tiêu học Duolingo mỗi ngày, hôm nay là ngày 928 · đặt chuỗi X là N", "live", "v0.1.6"],
+  ["task-timeline", "Chọn entry từ /timeline mở menu đầy đủ", "Mỗi dòng trong /timeline là 1 nút bấm; chọn 1 entry mở đúng menu đầy đủ (sửa tên/ghi chú/giờ bắt đầu-kết thúc/đổi ngày/xoá/xác nhận & lưu); xong tự quay lại danh sách ngày đó thay vì thoát hẳn", "/timeline → bấm 1 dòng trong danh sách", "live", "v0.1.12"]
 ];
 
 // ---------- NGUỒN SỰ THẬT: NHẬT KÝ THAY ĐỔI (mới nhất lên đầu) ----------
 var CHANGELOG = [
+  ["2026-07-31 06:23", "Xem timeline theo ngày (/timeline · /timeline hôm qua · /timeline 30/07) hiện danh sách dạng nút bấm; chọn 1 entry mở đúng menu đầy đủ giống v0.1.10 (sửa tên/ghi chú/giờ/ngày/xoá/xác nhận); sửa/xoá xong tự quay lại danh sách ngày đó thay vì thoát hẳn", "task-timeline", "Claude Sonnet 5", "v0.1.12", ""],
   ["2026-07-31 06:05", "Tự động báo tin qua Telegram sau mỗi release thành công: hàm GAS notifyRelease() + script release.sh chạy một mạch test → clasp push → deploy → git push → gửi thông báo (chỉ gửi khi deploy và push đều thành công)", "repo", "Claude Opus 5", "v0.1.11", ""],
   ["2026-07-31 05:42", "Menu tương tác đầy đủ cho timeline entry: bắt đầu/kết thúc/ghi khoảng đều kèm nút sửa tên, ghi chú, giờ bắt đầu, giờ kết thúc, đổi ngày, xoá, xác nhận & lưu. Bấm nút → bot hỏi → gõ giá trị ở ô chat thường. Hỗ trợ nhập bù ngày khác (30/07, hôm qua, 2 ngày trước)", "task-timeline", "Claude Opus 5", "v0.1.10", ""],
   ["2026-07-27 17:37", "Nhắc nhở timeline tự động mỗi 60 phút từ 6h đến 21h: đang có hoạt động thì nhắc cập nhật trạng thái (nút Kết thúc / Vẫn đang làm), không có thì nhắc ghi nhanh đang làm gì", "task-timeline", "Claude Opus 5", "v0.1.9", ""],
