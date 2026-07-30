@@ -2,10 +2,6 @@
  * Timeline.js — nhật ký thời gian thực + liên kết task.
  */
 
-function timelineStopButton_(id) {
-  return [[btn("⏹️ Kết thúc", "ls:" + id), btn("🗑", "lx:" + id)]];
-}
-
 /** Tạo block, trả id. end/duration để trống nếu chưa kết thúc. */
 function createTimelineBlock_(date, title, start, end, cat, taskId) {
   var id = nextId_(SHEET_TIMELINE, "L");
@@ -28,7 +24,7 @@ function timelineStart(chatId, intent) {
   var start = normTime_(intent.time) || normTime_(intent.start_time) || fmtTimeNow_();
   var cat = normalizeCategory_(intent.category);
   var id = createTimelineBlock_(intent.date || todayStr_(), title, start, "", cat, "");
-  sendMessage(chatId, "▶️ Bắt đầu <b>" + esc_(title) + "</b> lúc " + start + (cat ? " · " + cat : ""), timelineStopButton_(id));
+  sendTimelineCard_(chatId, id, "▶️ <b>Đã bắt đầu</b>");
 }
 
 /** Tìm block đang mở (end trống) khớp target, hoặc mở gần nhất nếu không có target. */
@@ -70,7 +66,7 @@ function finishBlock_(chatId, b, time, callbackId) {
     }
   }
   if (callbackId) answerCallbackQuery(callbackId, "⏹️ Kết thúc");
-  sendMessage(chatId, "⏹️ <b>" + esc_(b.title) + "</b>: " + b.start_at + "–" + end + " (" + dur + " phút)" + extra);
+  sendTimelineCard_(chatId, b.id, "⏹️ <b>Đã kết thúc</b>" + extra);
 }
 
 /** Thêm 1 khoảng trọn vẹn (từ...đến...). */
@@ -81,8 +77,7 @@ function timelineRange(chatId, intent) {
   var date = intent.date || todayStr_();
   var cat = normalizeCategory_(intent.category);
   var id = createTimelineBlock_(date, title, s, e, cat, "");
-  sendMessage(chatId, "🕒 Đã ghi <b>" + esc_(title) + "</b>: " + s + "–" + e + " (" + diffMinutes_(s, e) + " phút)" + (cat ? " · " + cat : ""),
-    [[btn("🗑", "lx:" + id)]]);
+  sendTimelineCard_(chatId, id, "🕒 <b>Đã ghi</b>");
 }
 
 function timelineList(chatId, dateStr) {
@@ -138,6 +133,5 @@ function startTimelineForTask(chatId, taskId, callbackId) {
   var id = createTimelineBlock_(todayStr_(), t.title, start, "", t.category || "", t.id);
   updateRow_(SHEET_TASKS, t._row, { status: TASK_STATUS.DOING, started_at: fmtDateTime_(now_()) });
   if (callbackId) answerCallbackQuery(callbackId, "▶️ Bắt đầu");
-  sendMessage(chatId, "▶️ Bắt đầu <b>" + esc_(t.title) + "</b> lúc " + start + "\n<i>(kết thúc sẽ tự hoàn thành task)</i>",
-    timelineStopButton_(id));
+  sendTimelineCard_(chatId, id, "▶️ <b>Đã bắt đầu</b> <i>(kết thúc sẽ tự hoàn thành task)</i>");
 }

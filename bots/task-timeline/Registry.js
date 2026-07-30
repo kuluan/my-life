@@ -36,12 +36,15 @@ var FEATURES = [
   ["task-timeline", "Nhật ký giao tiếp (Logs)", "Ghi lại mọi tin nhắn/callback vào và mọi phản hồi bot gửi ra vào tab Logs để xem lại khi cần", "(tự động, xem tab Logs)", "live", "v0.1.3"],
   ["task-timeline", "Chống trùng lặp update_id", "Bỏ qua update Telegram gửi lại (retry) trong 10 phút — tránh bot trả lời lặp khi webhook chậm", "(tự động, bên trong doPost)", "live", "v0.1.4"],
   ["task-timeline", "Công cụ chẩn đoán webhook", "Xem trạng thái hàng đợi Telegram, đọc log gần nhất, gắn lại webhook khi kẹt", "clasp run debugWebhookInfo / debugReadLogs / resetWebhookDropPending", "live", "v0.1.5"],
+  ["task-timeline", "Menu tương tác timeline entry", "Mỗi entry vừa tạo/kết thúc kèm inline keyboard: sửa tên, ghi chú, giờ bắt đầu/kết thúc, đổi ngày, xoá, xác nhận & lưu — bấm nút rồi gõ giá trị ở ô chat thường", "(nút dưới mỗi hoạt động)", "live", "v0.1.10"],
+  ["task-timeline", "Nhập bù timeline ngày khác", "Tạo/chuyển hoạt động sang ngày bất kỳ khi quên ghi nhận", "nút 📅 Đổi ngày → 30/07 · hôm qua · 2 ngày trước", "live", "v0.1.10"],
   ["task-timeline", "Nhắc nhở timeline mỗi 60 phút", "Trigger theo giờ, khung 6h-21h: đang chạy hoạt động → nhắc cập nhật kèm nút; rảnh → nhắc ghi nhanh", "(tự động, chỉnh giờ ở REMINDER_START_HOUR/END_HOUR)", "live", "v0.1.9"],
   ["task-timeline", "Mục tiêu hằng ngày kèm streak sẵn có", "Tạo việc lặp bằng câu tự nhiên và khai báo luôn chuỗi ngày đang duy trì; sửa lại chuỗi khi cần", "mục tiêu học Duolingo mỗi ngày, hôm nay là ngày 928 · đặt chuỗi X là N", "live", "v0.1.6"]
 ];
 
 // ---------- NGUỒN SỰ THẬT: NHẬT KÝ THAY ĐỔI (mới nhất lên đầu) ----------
 var CHANGELOG = [
+  ["2026-07-31 05:42", "Menu tương tác đầy đủ cho timeline entry: bắt đầu/kết thúc/ghi khoảng đều kèm nút sửa tên, ghi chú, giờ bắt đầu, giờ kết thúc, đổi ngày, xoá, xác nhận & lưu. Bấm nút → bot hỏi → gõ giá trị ở ô chat thường. Hỗ trợ nhập bù ngày khác (30/07, hôm qua, 2 ngày trước)", "task-timeline", "Claude Opus 5", "v0.1.10", ""],
   ["2026-07-27 17:37", "Nhắc nhở timeline tự động mỗi 60 phút từ 6h đến 21h: đang có hoạt động thì nhắc cập nhật trạng thái (nút Kết thúc / Vẫn đang làm), không có thì nhắc ghi nhanh đang làm gì", "task-timeline", "Claude Opus 5", "v0.1.9", ""],
   ["2026-07-27 17:17", "Fix nghiêm trọng: /timeline và /tasks luôn báo trống, thời lượng ra NaN — do Sheets tự ép chuỗi ngày/giờ thành kiểu Date. Chuẩn hoá khi đọc + đặt cột dạng text + dọn dữ liệu cũ (migrateDateTimeToText)", "task-timeline", "Claude Opus 5", "v0.1.8", ""],
   ["2026-07-27 11:32", "Fix: '/tl <việc> từ 10:00' bị ghi nhầm giờ hiện tại — timelineStart giờ nhận cả start_time, timelineStop nhận cả end_time; prompt phân biệt rõ 'từ H1' (bắt đầu) với 'từ H1 đến H2' (khoảng trọn)", "task-timeline", "Claude Opus 5", "v0.1.7", ""],

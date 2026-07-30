@@ -52,6 +52,14 @@ function routeMessage_(message) {
   var text = String(message.text).trim();
   var lower = text.toLowerCase();
 
+  // Đang chờ user nhập giá trị cho menu timeline → tiêu thụ tin nhắn này.
+  // Gõ lệnh (bắt đầu bằng "/") thì huỷ chờ và xử lý như bình thường.
+  var pend = getPending_(chatId);
+  if (pend) {
+    if (text.charAt(0) !== "/") { applyTimelineEdit_(chatId, pend, text); return; }
+    clearPending_(chatId);
+  }
+
   // Slash deterministic (không tốn Gemini).
   if (lower === "/start") { sendMessage(chatId, start()); return; }
   if (lower === "/help") { sendMessage(chatId, help()); return; }
@@ -89,6 +97,7 @@ function dispatchIntent_(chatId, i) {
 
 function handleCallback_(cq) {
   var chatId = cq.message.chat.id;
+  var msgId = cq.message.message_id;
   var cbId = cq.id;
   var data = String(cq.data || "");
   var idx = data.indexOf(":");
@@ -103,6 +112,14 @@ function handleCallback_(cq) {
     case "ls": timelineStopById(chatId, id, "", cbId); break;    // timeline ⏹️ kết thúc
     case "lx": askDeleteTimeline(chatId, id, cbId); break;      // timeline 🗑 hỏi
     case "lxok": deleteTimelineConfirmed(chatId, id, cbId); break; // timeline xoá xác nhận
+    // --- menu tương tác của timeline entry (TimelineEdit.js) ---
+    case "te": askTimelineEdit_(chatId, msgId, id, "title", cbId); break;
+    case "tn": askTimelineEdit_(chatId, msgId, id, "note", cbId); break;
+    case "tb": askTimelineEdit_(chatId, msgId, id, "start", cbId); break;
+    case "tf": askTimelineEdit_(chatId, msgId, id, "end", cbId); break;
+    case "tdate": askTimelineEdit_(chatId, msgId, id, "date", cbId); break;
+    case "tcancel": cancelTimelineEdit_(chatId, msgId, id, cbId); break;
+    case "tok": confirmTimelineEntry_(chatId, msgId, id, cbId); break;
     case "keep": answerCallbackQuery(cbId, "👍 Ok, tiếp tục nhé"); break;  // nhắc nhở: vẫn đang làm
     case "tlview": answerCallbackQuery(cbId, ""); timelineList(chatId, todayStr_()); break;
     case "cancel": answerCallbackQuery(cbId, "Đã huỷ"); break;
@@ -132,7 +149,12 @@ function help() {
     "• Kết thúc: nút ⏹️ · <code>xong code app</code>\n" +
     "• Khoảng: <code>đọc sách từ 20:00 đến 21:30</code>\n" +
     "• Xem: /timeline · /tl · <code>timeline hôm qua</code>\n" +
-    "• Xoá: <code>xóa timeline code app</code>\n\n" +
+    "• Xoá: <code>xóa timeline code app</code>\n" +
+    "• <b>Menu sửa</b>: mỗi hoạt động vừa tạo/kết thúc đều kèm nút\n" +
+    "   ✏️ tên · 📝 ghi chú · 🕐 giờ bắt đầu · 🕑 giờ kết thúc · 📅 ngày · 🗑️ xoá\n" +
+    "   Bấm nút → bot hỏi → gõ giá trị vào ô chat là xong.\n" +
+    "• <b>Nhập bù ngày khác</b>: bấm 📅 rồi gõ <code>30/07</code> · <code>hôm qua</code> · <code>2 ngày trước</code>\n" +
+    "   (hoặc ghi thẳng: <code>họp team hôm qua từ 9:00 đến 10:00</code>)\n\n" +
     "🔁 <b>VIỆC LẶP / MỤC TIÊU HẰNG NGÀY</b>\n" +
     "• Tạo: <code>/repeat tập gym daily</code> · <code>mục tiêu học Duolingo mỗi ngày</code>\n" +
     "• Lịch khác: <code>đi chợ weekly:Sun</code> · <code>đóng tiền monthly:1</code>\n" +

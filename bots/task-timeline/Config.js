@@ -5,7 +5,7 @@
  */
 
 // Version — chỉ bump PATCH mỗi lần deploy (CLAUDE.md mục 4).
-var APP_VERSION = "v0.1.9";
+var APP_VERSION = "v0.1.10";
 
 // Tên workbook DB của domain này.
 var WORKBOOK_NAME = "LP — Task & Timeline 2026";
