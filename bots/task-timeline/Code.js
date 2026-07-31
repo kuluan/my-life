@@ -134,7 +134,6 @@ function handleCallback_(cq) {
     case "tf": askTimelineEdit_(chatId, msgId, id, "end", cbId, extra); break;
     case "tdate": askTimelineEdit_(chatId, msgId, id, "date", cbId, extra); break;
     case "tcancel": cancelTimelineEdit_(chatId, msgId, id, cbId, extra); break;
-    case "tok": confirmTimelineEntry_(chatId, msgId, id, cbId, extra); break;
     // --- xem /timeline theo ngày: chọn 1 entry từ danh sách để mở menu đầy đủ ---
     case "tlpick": openTimelineEntryFromList_(chatId, msgId, id, extra, cbId); break;
     // --- xem /timeline theo tuần: chọn 1 ngày để mở chi tiết ngày đó ---
@@ -168,7 +167,7 @@ function help() {
     "• Kết thúc: nút ⏹️ · <code>xong code app</code>\n" +
     "• Khoảng: <code>đọc sách từ 20:00 đến 21:30</code>\n" +
     "• Xem: /timeline · /tl · <code>/timeline hôm qua</code> · <code>/timeline 30/07</code>\n" +
-    "   → bấm vào 1 dòng trong danh sách để mở menu sửa/xoá luôn, xong tự quay lại danh sách\n" +
+    "   → bấm vào 1 dòng trong danh sách để mở menu sửa/xoá; mỗi lần sửa tự lưu ngay, xoá xong tự quay lại danh sách\n" +
     "• Xem theo tuần: <code>/timeline tuần này</code> · <code>/timeline tuần trước</code> · <code>/timeline tuần 28/07</code>\n" +
     "   → tóm tắt từng ngày (tổng giờ · hoạt động nổi bật), bấm 1 ngày để xem chi tiết\n" +
     "• Xoá: <code>xóa timeline code app</code>\n" +

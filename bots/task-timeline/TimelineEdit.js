@@ -46,9 +46,10 @@ function renderTimelineEntry_(b) {
 }
 
 /**
- * Inline keyboard đầy đủ cho entry.
+ * Inline keyboard đầy đủ cho entry — chỉ các nút hành động thực sự; mỗi thao tác sửa tự lưu
+ * ngay sau khi user nhập xong (applyTimelineEdit_), không có bước "xác nhận & lưu" riêng.
  * @param {string} [backDate] Nếu entry được mở từ danh sách /timeline của ngày này, đính kèm
- *   ngày đó vào callback_data (action:id:backDate) để "Xác nhận & lưu"/"Xoá" quay lại đúng danh sách.
+ *   ngày đó vào callback_data (action:id:backDate) để "Xoá" quay lại đúng danh sách.
  */
 function timelineMenu_(b, backDate) {
   var id = b.id;
@@ -59,7 +60,6 @@ function timelineMenu_(b, backDate) {
     [btn("📅 Đổi ngày", "tdate:" + id + suf), btn("🗑️ Xoá", "lx:" + id + suf)]
   ];
   if (!b.end_at) rows.push([btn("⏹️ Kết thúc ngay", "ls:" + id)]);
-  rows.push([btn("✅ Xác nhận & lưu", "tok:" + id + suf)]);
   return rows;
 }
 
@@ -104,23 +104,6 @@ function cancelTimelineEdit_(chatId, msgId, id, callbackId, backDate) {
   clearPending_(chatId);
   refreshTimelineCard_(chatId, msgId, id, "", backDate);
   if (callbackId) answerCallbackQuery(callbackId, "Đã huỷ");
-}
-
-/**
- * ✅ Xác nhận & lưu: chốt entry. Nếu được mở từ danh sách /timeline (có backDate) → quay lại
- * đúng danh sách ngày đó (mục 3, thay vì thoát hẳn về tin "Đã lưu" chết).
- */
-function confirmTimelineEntry_(chatId, msgId, id, callbackId, backDate) {
-  clearPending_(chatId);
-  var b = findById_(SHEET_TIMELINE, id);
-  if (!b) { if (callbackId) answerCallbackQuery(callbackId, "Không tìm thấy"); return; }
-  if (backDate) {
-    var view = buildTimelineListView_(backDate);
-    editMessageText(chatId, msgId, "✅ <i>Đã lưu.</i>\n\n" + view.text, view.keyboard);
-  } else {
-    editMessageText(chatId, msgId, renderTimelineEntry_(b) + "\n\n✅ <i>Đã lưu.</i>");
-  }
-  if (callbackId) answerCallbackQuery(callbackId, "✅ Đã lưu");
 }
 
 // ---------- áp dụng giá trị user gõ ----------
@@ -331,4 +314,51 @@ function testEditParsers() {
   var r = out.join("\n") + "\n→ " + (cases.length - fail) + "/" + cases.length + " PASS";
   Logger.log(r);
   return r;
+}
+
+/**
+ * Test menu timeline entry KHÔNG còn nút "✅ Xác nhận & lưu" (đã bỏ, mỗi sửa tự lưu ngay) và
+ * vẫn đủ đúng các nút hành động thực sự. `clasp run testTimelineMenuNoConfirm`
+ */
+function testTimelineMenuNoConfirm() {
+  var out = [], fail = 0;
+  function check(name, got, want) {
+    var ok = String(got) === String(want);
+    if (!ok) fail++;
+    out.push((ok ? "PASS " : "FAIL ") + name + " = " + JSON.stringify(got) + (ok ? "" : " ≠ " + JSON.stringify(want)));
+  }
+  var id = createTimelineBlock_("2000-01-05", "TEST_MENU_OPEN", "08:00", "", "", ""); // đang chạy
+  var id2 = createTimelineBlock_("2000-01-05", "TEST_MENU_CLOSED", "08:00", "09:00", "", ""); // đã đóng
+  try {
+    var bOpen = findById_(SHEET_TIMELINE, id);
+    var flatOpen = [].concat.apply([], timelineMenu_(bOpen));
+    var dataOpen = flatOpen.map(function (b) { return b.callback_data.split(":")[0]; });
+    check("entry đang chạy: không còn nút tok", dataOpen.indexOf("tok") >= 0, false);
+    check("entry đang chạy: không còn text 'Xác nhận'", flatOpen.some(function (b) { return b.text.indexOf("Xác nhận") >= 0; }), false);
+    check("entry đang chạy: đủ 7 nút (6 sửa/xoá + kết thúc ngay)", flatOpen.length, 7);
+    check("entry đang chạy: có nút kết thúc ngay (ls)", dataOpen.indexOf("ls") >= 0, true);
+    ["te", "tn", "tb", "tf", "tdate", "lx"].forEach(function (a) {
+      check("entry đang chạy: có nút " + a, dataOpen.indexOf(a) >= 0, true);
+    });
+
+    var bClosed = findById_(SHEET_TIMELINE, id2);
+    var flatClosed = [].concat.apply([], timelineMenu_(bClosed));
+    var dataClosed = flatClosed.map(function (b) { return b.callback_data.split(":")[0]; });
+    check("entry đã đóng: không còn nút tok", dataClosed.indexOf("tok") >= 0, false);
+    check("entry đã đóng: không có nút kết thúc ngay (ls)", dataClosed.indexOf("ls") >= 0, false);
+    check("entry đã đóng: đủ 6 nút (không có kết thúc ngay/tok)", flatClosed.length, 6);
+
+    // backDate vẫn được giữ trên các nút còn lại (để xoá vẫn quay lại đúng danh sách)
+    var flatBack = [].concat.apply([], timelineMenu_(bClosed, "2000-01-05"));
+    var lxBtn = flatBack.filter(function (b) { return b.callback_data.indexOf("lx:") === 0; })[0];
+    check("nút Xoá vẫn giữ backDate khi có", lxBtn.callback_data, "lx:" + id2 + ":2000-01-05");
+  } finally {
+    [id, id2].forEach(function (rid) {
+      var b = findById_(SHEET_TIMELINE, rid);
+      if (b) deleteRow_(SHEET_TIMELINE, b._row);
+    });
+  }
+  var res = out.join("\n") + "\n→ " + (out.length - fail) + "/" + out.length + " PASS (đã xoá entry test)";
+  Logger.log(res);
+  return res;
 }
