@@ -29,6 +29,9 @@ var FEATURES = [
   ["task-timeline", "Xem timeline + tổng thời lượng", "Danh sách block trong ngày + tổng phút theo category", "/timeline · /tl · /timeline hôm qua · /timeline 30/07", "live", "v0.1.0"],
   ["task-timeline", "Liên kết Task ↔ Timeline", "Bắt đầu từ task → mở timeline; kết thúc → tự hoàn thành task", "nút ▶️ dưới task", "live", "v0.1.0"],
   ["task-timeline", "Việc lặp + streak", "Định nghĩa việc lặp, đếm chuỗi, 3 lượt cứu streak", "/repeat ... daily · /streak · dừng lặp X", "live", "v0.1.0"],
+  ["task-timeline", "Tách task một lần / task chu kỳ", "/tasks chia rõ 2 nhóm: 🔁 VIỆC CHU KỲ (sinh từ định nghĩa lặp, kèm nhãn chu kỳ và 🔥 streak) và ▫️ VIỆC MỘT LẦN; dòng đầu tóm tắt số lượng mỗi nhóm", "/tasks · xem task <ngày>", "live", "v0.1.16"],
+  ["task-timeline", "Chu kỳ hàng năm + chu kỳ tiếng Việt", "Thêm chu kỳ yearly:MM-DD; nhận mọi cách viết tiếng Việt (hàng ngày/tuần/tháng/năm, T2–CN, 'thứ ba', 'ngày 1,15', '30/07'); mốc 29–31 tự kẹp về ngày cuối tháng nên không mất mốc", "/repeat X hàng năm 30/07 · /repeat X hàng tuần T7", "live", "v0.1.16"],
+  ["task-timeline", "Trợ lý tạo task chu kỳ bằng nút", "/repeat không tham số → hỏi tên việc → bấm chọn chu kỳ (hàng ngày/tuần/tháng/năm); hàng tuần chọn thứ bằng nút bật/tắt T2–CN; tạo xong báo luôn lần tới rơi vào ngày nào", "/repeat · nút ➕ Thêm việc chu kỳ ở /tasks và /streak", "live", "v0.1.16"],
   ["task-timeline", "Tự sinh task lặp hằng ngày", "Trigger 5h sáng tạo task cho việc lặp tới hạn", "(tự động)", "live", "v0.1.0"],
   ["registry", "Danh mục tính năng & Nhật ký thay đổi", "2 sheet cho user xem tính năng hiện có và lịch sử yêu cầu", "(sheet)", "live", "v0.1.0"],
   ["task-timeline", "Whitelist bảo mật", "Chỉ nick Telegram có trong tab Whitelist mới dùng được bot; chặn ngay ở webhook doPost", "(tự động, quản lý qua tab Whitelist)", "live", "v0.1.1"],
@@ -49,6 +52,7 @@ var FEATURES = [
 
 // ---------- NGUỒN SỰ THẬT: NHẬT KÝ THAY ĐỔI (mới nhất lên đầu) ----------
 var CHANGELOG = [
+  ["2026-08-06 10:30", "Phân biệt task một lần với task có chu kỳ: /tasks tách 2 nhóm rõ ràng (🔁 VIỆC CHU KỲ kèm nhãn chu kỳ + streak, ▫️ VIỆC MỘT LẦN). Bổ sung chu kỳ hàng năm (yearly:MM-DD) bên cạnh ngày/tuần/tháng, hiểu mọi cách viết tiếng Việt ('hàng tuần T7', 'mỗi năm 30/07', 'thứ ba'). Thêm cách tạo task chu kỳ bằng trợ lý nút bấm: /repeat → nhập tên → chọn chu kỳ (hàng tuần chọn thứ bằng nút bật/tắt)", "task-timeline", "Claude Opus 5", "v0.1.16", ""],
   ["2026-07-31 08:52", "Bỏ nút '✅ Xác nhận & lưu' khỏi menu timeline entry: mỗi thao tác sửa tên/ghi chú/giờ bắt đầu-kết thúc/đổi ngày giờ tự lưu ngay sau khi user nhập xong rồi vẽ lại menu, không cần bước xác nhận thêm; menu chỉ còn nút hành động thực sự (sửa/xoá/kết thúc ngay)", "task-timeline", "Claude Sonnet 5", "v0.1.15", ""],
   ["2026-07-31 06:51", "Xem timeline theo tuần: /timeline tuần này · tuần trước · tuần 28/07 hiện tóm tắt 7 ngày T2→CN (tổng giờ tracked, số entries, top 3 hoạt động nổi bật nhất mỗi ngày); bấm 1 ngày để mở chi tiết ngày đó bằng đúng flow /timeline dd/mm đã có", "task-timeline", "Claude Sonnet 5", "v0.1.14", ""],
   ["2026-07-31 06:33", "Timeline entry kéo qua nửa đêm (vd ngủ 23:00 ngày X → 06:30 ngày X+1) giờ hiện ở CẢ HAI ngày khi xem /timeline: ngày bắt đầu hiện phần đầu (🌙 giờ đầu–…, ghi chú 'sang hôm sau'), ngày kết thúc hiện phần đuôi (🌙 …–giờ cuối, ghi chú 'từ hôm qua'); entry còn đang chạy dở qua nửa đêm cũng hiện tiếp ở ngày mới ('từ hôm qua, đang chạy'); tổng thời lượng mỗi ngày không bị đếm đôi", "task-timeline", "Claude Sonnet 5", "v0.1.13", ""],

@@ -26,21 +26,67 @@ function addTaskFromIntent(chatId, intent) {
     taskButtons_(id));
 }
 
+/** Tách task một lần (repeat rỗng) khỏi task sinh từ việc chu kỳ (repeat = id Recurring). */
+function splitTasksByRepeat_(rows) {
+  var recur = [], once = [];
+  rows.forEach(function (t) {
+    if (String(t.repeat || "").trim()) recur.push(t); else once.push(t);
+  });
+  return { recur: recur, once: once };
+}
+
+/** Map id việc chu kỳ → dòng Recurring (để hiện nhãn chu kỳ + streak trong danh sách task). */
+function recurringMap_() {
+  var m = {};
+  readRows_(SHEET_RECURRING).forEach(function (r) { m[String(r.id)] = r; });
+  return m;
+}
+
+/** Một dòng task trong danh sách. recMap != null → thêm nhãn chu kỳ và streak. */
+function taskLine_(t, recMap) {
+  var mark = t.status === TASK_STATUS.DOING ? "⏳" : "▫️";
+  var line = mark + " <b>" + esc_(t.title) + "</b>";
+  if (t.priority) line += " ⚡" + esc_(t.priority);
+  if (t.category) line += " · " + esc_(t.category);
+  if (recMap) {
+    var r = recMap[String(t.repeat)];
+    if (r) {
+      line += "\n   " + scheduleIcon_(r.schedule) + " " + esc_(scheduleLabel_(r.schedule));
+      var cur = Number(r.current_streak) || 0;
+      if (cur > 0) line += " · 🔥 " + cur;
+    }
+  }
+  if (t.note) line += "\n   📝 " + esc_(t.note);
+  return line;
+}
+
+/**
+ * Danh sách task của một ngày, tách 2 nhóm rõ ràng:
+ *   🔁 VIỆC CHU KỲ  — sinh từ định nghĩa lặp (hàng ngày/tuần/tháng/năm), kèm nhãn chu kỳ + streak
+ *   ▫️ VIỆC MỘT LẦN — task rời, làm xong là hết
+ */
 function listTasks(chatId, dateStr) {
   var date = dateStr || todayStr_();
   var rows = readRows_(SHEET_TASKS).filter(function (t) {
     return String(t.date) === date && (t.status === TASK_STATUS.TODO || t.status === TASK_STATUS.DOING);
   });
-  if (!rows.length) { sendMessage(chatId, "📭 Không có task nào cho <b>" + date + "</b>."); return; }
-  sendMessage(chatId, "📋 <b>Task ngày " + date + "</b> (" + rows.length + ")");
-  rows.forEach(function (t) {
-    var mark = t.status === TASK_STATUS.DOING ? "⏳" : "▫️";
-    var line = mark + " <b>" + esc_(t.title) + "</b>";
-    if (t.priority) line += " ⚡" + esc_(t.priority);
-    if (t.category) line += " · " + esc_(t.category);
-    if (t.note) line += "\n   📝 " + esc_(t.note);
-    sendMessage(chatId, line, taskButtons_(t.id));
-  });
+  if (!rows.length) {
+    sendMessage(chatId, "📭 Không có task nào cho <b>" + date + "</b>.", [[btn("➕ Thêm việc chu kỳ", "rcnew")]]);
+    return;
+  }
+  var grp = splitTasksByRepeat_(rows);
+  sendMessage(chatId, "📋 <b>Task ngày " + date + "</b> (" + rows.length + ")\n" +
+    "🔁 chu kỳ: " + grp.recur.length + "  ·  ▫️ một lần: " + grp.once.length);
+
+  if (grp.recur.length) {
+    var recMap = recurringMap_();
+    sendMessage(chatId, "🔁 <b>VIỆC CHU KỲ</b> (" + grp.recur.length + ")");
+    grp.recur.forEach(function (t) { sendMessage(chatId, taskLine_(t, recMap), taskButtons_(t.id)); });
+  }
+  if (grp.once.length) {
+    sendMessage(chatId, "▫️ <b>VIỆC MỘT LẦN</b> (" + grp.once.length + ")");
+    grp.once.forEach(function (t) { sendMessage(chatId, taskLine_(t, null), taskButtons_(t.id)); });
+  }
 }
 
 /** Tìm task chưa done khớp target (ưu tiên hôm nay). */

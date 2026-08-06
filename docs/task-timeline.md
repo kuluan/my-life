@@ -40,7 +40,7 @@ Google Sheet riêng, **không đụng** `GEN LEDGER`. 6 tab:
 |---|---|
 | `id` | Mã, vd `R-0003` |
 | `title` | Tên việc lặp |
-| `schedule` | `daily` · `weekly:Mon,Wed,Fri` · `monthly:1,15` |
+| `schedule` | `daily` · `weekly:Mon,Wed,Fri` · `monthly:1,15` · `yearly:MM-DD` (dạng chuẩn do `normalizeSchedule_()` quy về; user gõ "hàng tuần T7", "mỗi năm 30/07"… đều được) |
 | `category` | Thuộc `Config` |
 | `active` | `TRUE`/`FALSE` |
 | `current_streak` | Chuỗi hiện tại |
@@ -90,7 +90,7 @@ Ghi tự động ở `doPost` (mọi tin nhắn/callback vào) và `sendMessage`
 | Ý định | Cú pháp |
 |---|---|
 | Thêm | `/task Đưa con đi học ngày mai` · `thêm task họp team 28/7 !cao #Việc` |
-| Xem hôm nay | `/tasks` → list + nút ▶️ Bắt đầu · ✅ Xong · 🗑 Xóa |
+| Xem hôm nay | `/tasks` → tách 2 nhóm: **🔁 việc chu kỳ** (kèm nhãn chu kỳ + 🔥 streak) và **▫️ việc một lần**; mỗi dòng có nút ▶️ Bắt đầu · ✅ Xong · 🗑 Xóa |
 | Xem theo ngày | `/tasks ngày mai` · `/tasks 2026-07-28` |
 | Hoàn thành | nút ✅ · `xong đón con` · reply tin task |
 | Hoãn/đổi ngày | `hoãn đón con sang mai` |
@@ -107,12 +107,15 @@ Ghi tự động ở `doPost` (mọi tin nhắn/callback vào) và `sendMessage`
 | Xem theo ngày | `/timeline hôm qua` |
 | Xóa | nút 🗑 · `xóa timeline code app` (xác nhận) |
 
-### Việc lặp / streak
+### Task chu kỳ (việc lặp) / streak
 | Ý định | Cú pháp |
 |---|---|
-| Tạo | `/repeat Tập gym daily` · `/repeat Đi chợ weekly:Sun` |
-| Xem streak | `/streak` → 🔥 chuỗi · kỷ lục · số 🛟 |
+| Tạo bằng trợ lý | `/repeat` (không tham số) → nhập tên → bấm chọn 🔁 Hàng ngày / 📆 Hàng tuần (bấm chọn thứ T2–CN) / 🗓 Hàng tháng / 📅 Hàng năm |
+| Tạo bằng một câu | `/repeat Tập gym hàng ngày` · `/repeat Đi chợ hàng tuần T7` · `/repeat Đóng tiền nhà hàng tháng ngày 1` · `/repeat Giỗ ông hàng năm 30/07` |
+| Xem danh sách | `/repeats` · `/streak` → 🔥 chuỗi · kỷ lục · số 🛟 · nhãn chu kỳ |
 | Bật/tắt/xóa | nút · `dừng lặp tập gym` |
+
+Mốc ngày vượt số ngày của tháng được **kẹp về ngày cuối** (`monthly:31` rơi vào 28/02, `yearly:02-29` rơi vào 28/02 năm không nhuận) để không mất mốc.
 
 ### Hệ thống
 `/start` (chào + tóm tắt) · `/help` (hướng dẫn) · menu slash command đồng bộ router.

@@ -52,11 +52,15 @@ function routeMessage_(message) {
   var text = String(message.text).trim();
   var lower = text.toLowerCase();
 
-  // Đang chờ user nhập giá trị cho menu timeline → tiêu thụ tin nhắn này.
+  // Đang chờ user nhập giá trị (menu timeline hoặc trợ lý tạo việc chu kỳ) → tiêu thụ tin này.
   // Gõ lệnh (bắt đầu bằng "/") thì huỷ chờ và xử lý như bình thường.
   var pend = getPending_(chatId);
   if (pend) {
-    if (text.charAt(0) !== "/") { applyTimelineEdit_(chatId, pend, text); return; }
+    if (text.charAt(0) !== "/") {
+      if (pend.kind === REC_KIND) applyRecurringWizardInput_(chatId, pend, text);
+      else applyTimelineEdit_(chatId, pend, text);
+      return;
+    }
     clearPending_(chatId);
   }
 
@@ -65,7 +69,8 @@ function routeMessage_(message) {
   if (lower === "/help") { sendMessage(chatId, help()); return; }
   if (lower === "/tasks") { listTasks(chatId, todayStr_()); return; }
   if (lower === "/timeline" || lower === "/tl") { timelineList(chatId, todayStr_()); return; }
-  if (lower === "/streak") { streakView(chatId); return; }
+  if (lower === "/streak" || lower === "/repeats") { streakView(chatId); return; }
+  if (lower === "/repeat") { recurringWizardStart(chatId); return; } // trợ lý từng bước
 
   // "/timeline <tham số>" / "/tl <tham số>": ưu tiên khớp "tuần ..." (xem tóm tắt cả tuần) rồi
   // đến ngày đơn (30/07, hôm qua, 2026-07-30...) — cả hai deterministic, không tốn Gemini. Nếu
@@ -138,6 +143,15 @@ function handleCallback_(cq) {
     case "tlpick": openTimelineEntryFromList_(chatId, msgId, id, extra, cbId); break;
     // --- xem /timeline theo tuần: chọn 1 ngày để mở chi tiết ngày đó ---
     case "tlwd": openTimelineDayFromWeek_(chatId, msgId, id, cbId); break;
+    // --- trợ lý tạo việc chu kỳ (RecurringAdd.js) ---
+    case "rcnew": answerCallbackQuery(cbId, ""); recurringWizardStart(chatId); break;
+    case "rcd": recWizardPickCycle_(chatId, msgId, "daily", cbId); break;
+    case "rcw": recWizardPickCycle_(chatId, msgId, "weekly", cbId); break;
+    case "rcm": recWizardPickCycle_(chatId, msgId, "monthly", cbId); break;
+    case "rcy": recWizardPickCycle_(chatId, msgId, "yearly", cbId); break;
+    case "rcwt": recWizardToggleDay_(chatId, msgId, id, cbId); break;
+    case "rcwok": recWizardWeekDone_(chatId, msgId, cbId); break;
+    case "rccancel": recWizardCancel_(chatId, msgId, cbId); break;
     case "keep": answerCallbackQuery(cbId, "👍 Ok, tiếp tục nhé"); break;  // nhắc nhở: vẫn đang làm
     case "tlview": answerCallbackQuery(cbId, ""); timelineList(chatId, todayStr_()); break;
     case "cancel": answerCallbackQuery(cbId, "Đã huỷ"); break;
@@ -147,16 +161,16 @@ function handleCallback_(cq) {
 
 function start() {
   return "👋 <b>My-life · Task &amp; Timeline</b> " + APP_VERSION + "\n\n" +
-    "• <b>Task</b>: <code>thêm task ...</code> · /tasks\n" +
-    "• <b>Timeline</b>: <code>bắt đầu ...</code> · <code>xong ...</code> · /timeline\n" +
-    "• <b>Mục tiêu hằng ngày</b>: <code>/repeat ... daily</code> · /streak\n\n" +
+    "• <b>Task một lần</b>: <code>thêm task ...</code> · /tasks\n" +
+    "• <b>Task chu kỳ</b> (ngày/tuần/tháng/năm): /repeat · /streak\n" +
+    "• <b>Timeline</b>: <code>bắt đầu ...</code> · <code>xong ...</code> · /timeline\n\n" +
     "Gõ /help để xem đầy đủ.";
 }
 
 function help() {
   return "<b>HƯỚNG DẪN</b> " + APP_VERSION + "\n\n" +
-    "📋 <b>TASK</b>\n" +
-    "• Thêm: <code>thêm task đón con ngày mai</code>\n" +
+    "📋 <b>TASK</b> — /tasks tách sẵn <b>🔁 việc chu kỳ</b> và <b>▫️ việc một lần</b>\n" +
+    "• Thêm (một lần): <code>thêm task đón con ngày mai</code>\n" +
     "• Xem: /tasks · <code>xem task 2026-07-28</code>\n" +
     "• Xong: nút ✅ · <code>xong đón con</code>\n" +
     "• Hoãn: <code>hoãn đón con sang mai</code>\n" +
@@ -176,13 +190,19 @@ function help() {
     "   Bấm nút → bot hỏi → gõ giá trị vào ô chat là xong.\n" +
     "• <b>Nhập bù ngày khác</b>: bấm 📅 rồi gõ <code>30/07</code> · <code>hôm qua</code> · <code>2 ngày trước</code>\n" +
     "   (hoặc ghi thẳng: <code>họp team hôm qua từ 9:00 đến 10:00</code>)\n\n" +
-    "🔁 <b>VIỆC LẶP / MỤC TIÊU HẰNG NGÀY</b>\n" +
-    "• Tạo: <code>/repeat tập gym daily</code> · <code>mục tiêu học Duolingo mỗi ngày</code>\n" +
-    "• Lịch khác: <code>đi chợ weekly:Sun</code> · <code>đóng tiền monthly:1</code>\n" +
+    "🔁 <b>TASK CHU KỲ (việc lặp)</b>\n" +
+    "• <b>Cách dễ nhất</b>: gõ /repeat → nhập tên → bấm chọn chu kỳ\n" +
+    "   🔁 Hàng ngày · 📆 Hàng tuần (bấm chọn thứ) · 🗓 Hàng tháng · 📅 Hàng năm\n" +
+    "• Gõ thẳng một câu:\n" +
+    "   <code>/repeat tập gym hàng ngày</code>\n" +
+    "   <code>/repeat đi chợ hàng tuần T7</code>\n" +
+    "   <code>/repeat đóng tiền nhà hàng tháng ngày 1</code>\n" +
+    "   <code>/repeat giỗ ông hàng năm 30/07</code>\n" +
     "• Có sẵn chuỗi: <code>học Duolingo mỗi ngày, hôm nay là ngày 928</code>\n" +
     "• Sửa chuỗi: <code>đặt chuỗi Duolingo là 928</code>\n" +
-    "• Xem streak: /streak\n" +
-    "• Dừng: <code>dừng lặp tập gym</code>\n\n" +
+    "• Xem danh sách + streak: /streak (hoặc /repeats)\n" +
+    "• Dừng: <code>dừng lặp tập gym</code>\n" +
+    "→ Task chu kỳ tự sinh vào /tasks đúng ngày tới hạn, nằm ở nhóm 🔁 riêng.\n\n" +
     "⏰ <b>NHẮC NHỞ TỰ ĐỘNG</b>\n" +
     "• Mỗi 60 phút, từ " + REMINDER_START_HOUR + "h đến " + REMINDER_END_HOUR + "h\n" +
     "• Đang có hoạt động → nhắc cập nhật (nút ⏹️ Kết thúc · 👍 Vẫn đang làm)\n" +
@@ -229,9 +249,10 @@ function setupBotCommands() {
     { command: "tasks", description: "Xem task hôm nay" },
     { command: "timeline", description: "Xem timeline hôm nay" },
     { command: "tl", description: "Xem timeline (phím tắt)" },
-    { command: "task", description: "Thêm task" },
-    { command: "repeat", description: "Tạo việc lặp / mục tiêu hằng ngày" },
-    { command: "streak", description: "Xem streak việc lặp" },
+    { command: "task", description: "Thêm task một lần" },
+    { command: "repeat", description: "Thêm task chu kỳ (ngày/tuần/tháng/năm)" },
+    { command: "repeats", description: "Danh sách task chu kỳ" },
+    { command: "streak", description: "Xem streak việc chu kỳ" },
     { command: "help", description: "Hướng dẫn" },
     { command: "start", description: "Giới thiệu" }
   ];
